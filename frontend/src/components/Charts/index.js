@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, LineChart, Line, RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  BarChart, Bar, LineChart, Line
 } from 'recharts';
-import { getTempColor } from '../../utils/weatherUtils';
+
 
 const CustomTooltip = ({ active, payload, label, unit = '' }) => {
   if (!active || !payload?.length) return null;

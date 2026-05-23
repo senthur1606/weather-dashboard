@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SearchBar from '../../components/SearchBar';
-import { getWeatherIcon, getTempColor, getAQICategory } from '../../utils/weatherUtils';
+import { getWeatherIcon, getTempColor } from '../../utils/weatherUtils';
 import weatherApi from '../../services/weatherApi';
 import { FiX, FiPlus } from 'react-icons/fi';
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from 'recharts';

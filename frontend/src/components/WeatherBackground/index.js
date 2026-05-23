@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const WeatherBackground = () => {
-  const { weatherCondition, isNight } = useTheme();
+  const { weatherCondition } = useTheme();
   const containerRef = useRef(null);
 
   useEffect(() => {

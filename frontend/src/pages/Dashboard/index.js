@@ -13,7 +13,6 @@ import { useGeolocation, useInterval } from '../../hooks';
 import { formatLastUpdated } from '../../utils/weatherUtils';
 import { FiHeart, FiRefreshCw, FiNavigation, FiAlertTriangle, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import weatherApi from '../../services/weatherApi';
 
 const Dashboard = () => {
   const dispatch = useDispatch();
@@ -172,7 +171,6 @@ const Dashboard = () => {
 
 const FavoritesCityList = ({ onSelect }) => {
   const { items } = useSelector(s => s.favorites);
-  const dispatch = useDispatch();
 
   if (items.length === 0) return null;
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getWeatherIcon, getRelativeDay, getTempColor, getPrecipColor } from '../../utils/weatherUtils';
-import { FiDroplet, FiWind } from 'react-icons/fi';
+import { getWeatherIcon, getRelativeDay, getTempColor} from '../../utils/weatherUtils';
+import { FiDroplet} from 'react-icons/fi';
 
 const ForecastCard = ({ data, loading }) => {
   const [view, setView] = useState('daily'); // 'daily' | 'hourly'

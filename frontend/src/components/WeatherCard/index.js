@@ -3,13 +3,13 @@ import { motion } from 'framer-motion';
 import { useTheme } from '../../context/ThemeContext';
 import {
   degToCompass, getWeatherIcon, getUVCategory,
-  getTempColor, formatTime, getVisibilityLabel
+  getTempColor, formatTime
 } from '../../utils/weatherUtils';
 import {
   WiHumidity, WiStrongWind, WiBarometer, WiSunrise,
-  WiSunset, WiThermometer, WiDust
+  WiSunset
 } from 'react-icons/wi';
-import { FiEye, FiDroplet, FiNavigation } from 'react-icons/fi';
+import { FiEye } from 'react-icons/fi';
 
 const StatCard = ({ icon: Icon, label, value, unit, color, size = 'default' }) => (
   <motion.div

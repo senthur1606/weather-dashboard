@@ -6,7 +6,7 @@ import { toggleFavorite } from '../../store/slices/favoritesSlice';
 import { getWeatherIcon, getTempColor } from '../../utils/weatherUtils';
 import weatherApi from '../../services/weatherApi';
 import SearchBar from '../../components/SearchBar';
-import { FiHeart, FiTrash2, FiArrowRight, FiMapPin } from 'react-icons/fi';
+import {FiTrash2, FiArrowRight, FiMapPin } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const FavoriteWeatherCard = ({ city, onRemove, onClick }) => {
