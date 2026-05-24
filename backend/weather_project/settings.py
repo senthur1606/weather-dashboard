@@ -169,7 +169,7 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 # ===== WEATHER API =====
-WEATHER_API_KEY = config('WEATHER_API_KEY', default='your_openweathermap_api_key_here')
+WEATHER_API_KEY = config('WEATHER_API_KEY', default='dea5d0ea0f152563b1de9345686ec525')
 WEATHER_API_BASE = 'https://api.openweathermap.org/data/2.5'
 GEOCODING_API_BASE = 'https://api.openweathermap.org/geo/1.0'
 AIR_QUALITY_API_BASE = 'https://api.openweathermap.org/data/2.5'
