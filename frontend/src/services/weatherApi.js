@@ -205,7 +205,11 @@ const weatherApi = {
   // AI Recommendations
   getRecommendations: async (weatherData) => {
     try {
-      return await api.post('/weather/recommendations/', weatherData);
+      return await api.post('/weather/recommendations/', {
+       city: weatherData?.city,
+       lat: weatherData?.lat,
+       lon: weatherData?.lon,
+     });
     } catch {
       const temp = weatherData?.temperature || 20;
       const condition = weatherData?.condition?.toLowerCase() || 'clear';

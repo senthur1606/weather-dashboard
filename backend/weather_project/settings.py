@@ -124,7 +124,7 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '100/hour',
+        'anon': '1000/hour',
         'user': '1000/hour',
     },
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
@@ -169,10 +169,9 @@ CELERY_BEAT_SCHEDULE = {
 }
 
 # ===== WEATHER API =====
-WEATHER_API_KEY = config('WEATHER_API_KEY', default='dea5d0ea0f152563b1de9345686ec525')
-WEATHER_API_BASE = 'https://api.openweathermap.org/data/2.5'
-GEOCODING_API_BASE = 'https://api.openweathermap.org/geo/1.0'
-AIR_QUALITY_API_BASE = 'https://api.openweathermap.org/data/2.5'
+WEATHER_API_BASE = 'https://api.open-meteo.com/v1'
+GEOCODING_API_BASE = 'https://geocoding-api.open-meteo.com/v1'
+AIR_QUALITY_API_BASE = 'https://air-quality-api.open-meteo.com/v1'
 WEATHER_CACHE_TTL = 300  # 5 minutes
 
 # ===== EMAIL =====

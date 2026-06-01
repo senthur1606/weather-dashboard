@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback,useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWeather, fetchWeatherByCoords } from '../../store/slices/weatherSlice';
@@ -6,6 +6,7 @@ import { toggleFavorite } from '../../store/slices/favoritesSlice';
 import SearchBar from '../../components/SearchBar';
 import WeatherCard from '../../components/WeatherCard';
 import ForecastCard from '../../components/ForecastCard';
+import weatherApi from '../../services/weatherApi';
 import AQIWidget from '../../components/AQIWidget';
 import Charts from '../../components/Charts';
 import AIRecommendations from '../../components/AIRecommendations';
@@ -21,10 +22,19 @@ const Dashboard = () => {
   const { location, loading: geoLoading, getLocation } = useGeolocation();
 
   // Auto-load default city on mount
-  useEffect(() => {
-    const lastCity = localStorage.getItem('skypulse-last-city') || 'New York';
-    dispatch(fetchWeather(lastCity));
-  }, [dispatch]);
+const loadedRef = useRef(false);
+
+useEffect(() => {
+  if (loadedRef.current) return;
+
+  loadedRef.current = true;
+
+  const lastCity =
+    localStorage.getItem('skypulse-last-city') ||
+    'New York';
+
+  dispatch(fetchWeather(lastCity));
+}, [dispatch]);
 
   // Auto-refresh every 10 minutes
   useInterval(() => {
@@ -53,15 +63,58 @@ const Dashboard = () => {
     });
   };
 
-  const handleExport = async () => {
-    try {
-      toast.loading('Generating report...', { id: 'export' });
-      await new Promise(r => setTimeout(r, 1500));
-      toast.success('Report exported!', { id: 'export' });
-    } catch {
-      toast.error('Export failed', { id: 'export' });
-    }
-  };
+const handleExport = async () => {
+  try {
+
+    toast.loading('Generating report...', {
+      id: 'export'
+    });
+
+    const cityName =
+      current?.city || 'Current Location';
+
+    const response =
+      await weatherApi.exportReport(cityName);
+
+    const blob = new Blob(
+      [response.data],
+      { type: 'application/pdf' }
+    );
+
+    const url =
+      window.URL.createObjectURL(blob);
+
+    const link =
+      document.createElement('a');
+
+    link.href = url;
+
+    link.download =
+      `weather_${cityName}.pdf`;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    link.remove();
+
+    window.URL.revokeObjectURL(url);
+
+    toast.success(
+      'Report downloaded!',
+      { id: 'export' }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    toast.error(
+      'Export failed',
+      { id: 'export' }
+    );
+  }
+};
 
   const isFavorite = favorites.includes(current?.city);
 

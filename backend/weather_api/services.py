@@ -1,38 +1,35 @@
 """
-Weather service layer: wraps OpenWeatherMap API with caching,
-error handling, and response normalisation.
+Weather service layer using Open-Meteo APIs
 """
+
 import requests
 import logging
-from datetime import datetime, timezone
+from datetime import datetime
 from django.conf import settings
 from django.core.cache import cache
 
 logger = logging.getLogger('weather_api')
 
-API_KEY = settings.WEATHER_API_KEY
 BASE_URL = settings.WEATHER_API_BASE
 GEO_URL = settings.GEOCODING_API_BASE
 AQI_URL = settings.AIR_QUALITY_API_BASE
 CACHE_TTL = settings.WEATHER_CACHE_TTL
 
 
+# ─────────────────────────────────────────────────────────────
+# HTTP HELPER
+# ─────────────────────────────────────────────────────────────
+
 def _get(url: str, params: dict) -> dict:
-    """Low-level HTTP GET with error handling."""
-    params['appid'] = API_KEY
     try:
         resp = requests.get(url, params=params, timeout=10)
         resp.raise_for_status()
         return resp.json()
+
     except requests.Timeout:
         logger.error(f"Timeout fetching {url}")
-        raise ValueError("Weather API timed out. Please try again.")
-    except requests.HTTPError as e:
-        if e.response.status_code == 404:
-            raise ValueError("City not found. Check the city name and try again.")
-        if e.response.status_code == 401:
-            raise ValueError("Invalid API key. Check your OpenWeatherMap configuration.")
-        raise ValueError(f"Weather API error: {e.response.status_code}")
+        raise ValueError("Weather API timed out.")
+
     except requests.RequestException as e:
         logger.error(f"Request error: {e}")
         raise ValueError("Failed to connect to weather service.")
@@ -43,351 +40,457 @@ def _cache_key(prefix: str, *args) -> str:
     return f"skypulse_{prefix}_{parts}"
 
 
-# ─── Current Weather ──────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# GEOCODING
+# ─────────────────────────────────────────────────────────────
 
-def get_current_weather(city: str = None, lat: float = None, lon: float = None) -> dict:
-    """Fetch and normalise current weather for a city or coordinates."""
-    if city:
-        key = _cache_key('current', city)
-        params = {'q': city, 'units': 'metric'}
-    else:
-        key = _cache_key('current', lat, lon)
-        params = {'lat': lat, 'lon': lon, 'units': 'metric'}
+def geocode_city(city: str) -> dict:
+
+    key = _cache_key('geo', city)
 
     cached = cache.get(key)
     if cached:
-        logger.debug(f"Cache HIT: {key}")
         return cached
 
-    raw = _get(f"{BASE_URL}/weather", params)
-    result = _normalise_current(raw)
-    cache.set(key, result, CACHE_TTL)
-    logger.info(f"Fetched current weather for {result.get('city')}")
+    raw = _get(
+        f"{GEO_URL}/search",
+        {
+            "name": city,
+            "count": 1
+        }
+    )
+
+    results = raw.get('results')
+
+    if not results:
+        raise ValueError(f"City '{city}' not found.")
+
+    result = {
+        'lat': results[0]['latitude'],
+        'lon': results[0]['longitude'],
+        'name': results[0]['name'],
+        'country': results[0].get('country', ''),
+    }
+
+    cache.set(key, result, 3600)
+
     return result
 
 
-def _normalise_current(raw: dict) -> dict:
-    """Transform OWM response into our standard schema."""
-    main = raw.get('main', {})
-    wind = raw.get('wind', {})
-    sys = raw.get('sys', {})
-    weather = raw.get('weather', [{}])[0]
-    clouds = raw.get('clouds', {})
-    coord = raw.get('coord', {})
+# ─────────────────────────────────────────────────────────────
+# CURRENT WEATHER
+# ─────────────────────────────────────────────────────────────
 
-    tz_offset = raw.get('timezone', 0)
-    sunrise_ts = sys.get('sunrise', 0)
-    sunset_ts = sys.get('sunset', 0)
+def get_current_weather(city=None, lat=None, lon=None):
 
-    def fmt_time(ts):
-        dt = datetime.fromtimestamp(ts + tz_offset, tz=timezone.utc)
-        return dt.strftime('%H:%M')
+    city_name = ''
+    country = ''
+
+    # Search by city name
+    if city and not (lat and lon):
+
+        coords = geocode_city(city)
+
+        lat = coords['lat']
+        lon = coords['lon']
+
+        city_name = coords['name']
+        country = coords['country']
+
+    # Search by GPS coordinates
+    elif lat and lon:
+
+        location = reverse_geocode(lat, lon)
+
+        city_name = location['name']
+        country = location['country']
+
+    else:
+        raise ValueError("City or coordinates required.")
+
+    key = _cache_key('current', lat, lon)
+
+    cached = cache.get(key)
+    if cached:
+        return cached
+
+    raw = _get(
+        f"{BASE_URL}/forecast",
+        {
+            "latitude": lat,
+            "longitude": lon,
+
+            "current": [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "apparent_temperature",
+                "pressure_msl",
+                "wind_speed_10m",
+                "weather_code",
+                "visibility"
+            ],
+
+            "daily": [
+                "sunrise",
+                "sunset",
+                "uv_index_max"
+            ],
+
+            "timezone": "auto"
+        }
+    )
+
+    raw['city_name'] = city_name
+    raw['country'] = country
+
+    result = _normalise_current(raw)
+
+    cache.set(key, result, CACHE_TTL)
+
+    return result
+
+
+def _normalise_current(raw):
+
+    current = raw.get('current', {})
+    daily= raw.get('daily',{})
 
     return {
-        'city': raw.get('name', ''),
-        'country': sys.get('country', ''),
-        'lat': coord.get('lat'),
-        'lon': coord.get('lon'),
-        'temperature': round(main.get('temp', 0)),
-        'feels_like': round(main.get('feels_like', 0)),
-        'temp_min': round(main.get('temp_min', 0)),
-        'temp_max': round(main.get('temp_max', 0)),
-        'humidity': main.get('humidity', 0),
-        'pressure': main.get('pressure', 0),
-        'wind_speed': round(wind.get('speed', 0) * 3.6, 1),  # m/s → km/h
-        'wind_deg': wind.get('deg', 0),
-        'wind_gust': round(wind.get('gust', 0) * 3.6, 1) if wind.get('gust') else None,
-        'visibility': round(raw.get('visibility', 10000) / 1000, 1),  # m → km
-        'cloud_cover': clouds.get('all', 0),
-        'uv_index': 0,  # Requires separate UV endpoint
-        'condition': weather.get('main', 'Clear'),
-        'description': weather.get('description', '').title(),
-        'icon': weather.get('icon', '01d'),
-        'sunrise': fmt_time(sunrise_ts) if sunrise_ts else '06:00',
-        'sunset': fmt_time(sunset_ts) if sunset_ts else '20:00',
-        'timezone': tz_offset,
-        'local_time': datetime.utcnow().isoformat(),
+        'city': raw.get('city_name',''),
+        'country': raw.get('country',''),
+
+        'lat': raw.get('latitude'),
+        'lon': raw.get('longitude'),
+
+        'temperature': round(current.get('temperature_2m', 0)),
+
+        'feels_like': round(
+            current.get('apparent_temperature', 0)
+        ),
+
+        'temp_min': round(
+            current.get('temperature_2m', 0)
+        ),
+
+        'temp_max': round(
+            current.get('temperature_2m', 0)
+        ),
+
+        'humidity': current.get(
+            'relative_humidity_2m',
+            0
+        ),
+
+        'pressure': current.get(
+            'pressure_msl',
+            0
+        ),
+
+        'wind_speed': current.get(
+            'wind_speed_10m',
+            0
+        ),
+
+        'wind_deg': 0,
+
+        'wind_gust': None,
+
+        'visibility': round(
+            current.get('visibility',0) / 1000,
+            1
+        ),
+
+        'cloud_cover': 0,
+
+        'uv_index': daily.get(
+            'uv_index_max',
+            [0]
+        )[0],
+
+        'condition': 'Clear',
+
+        'description': 'Open-Meteo Weather',
+
+        'icon': '01d',
+
+        'sunrise': daily.get('sunrise', ['06:00'])[0][-5:],
+
+        'sunset': daily.get('sunset', ['18:00'])[0][-5:],
+
+        'timezone': raw.get('timezone', ''),
+
+        'local_time': current.get('time', ''),
+
         'dew_point': None,
     }
 
 
-# ─── Forecast ─────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# FORECAST
+# ─────────────────────────────────────────────────────────────
 
-def get_forecast(city: str = None, lat: float = None, lon: float = None) -> dict:
-    """Fetch 5-day / 3-hour forecast and reshape to daily + hourly."""
-    if city:
-        key = _cache_key('forecast', city)
-        params = {'q': city, 'units': 'metric', 'cnt': 40}
-    else:
-        key = _cache_key('forecast', lat, lon)
-        params = {'lat': lat, 'lon': lon, 'units': 'metric', 'cnt': 40}
+def get_forecast(city=None, lat=None, lon=None):
 
-    cached = cache.get(key)
-    if cached:
-        return cached
-
-    raw = _get(f"{BASE_URL}/forecast", params)
-    result = _normalise_forecast(raw)
-    cache.set(key, result, CACHE_TTL)
-    return result
-
-
-def _normalise_forecast(raw: dict) -> dict:
-    items = raw.get('list', [])
-
-    # Build hourly (next 24 entries = ~3 days of 3h intervals)
-    hourly = []
-    for item in items[:24]:
-        dt = datetime.utcfromtimestamp(item['dt'])
-        w = item.get('weather', [{}])[0]
-        hourly.append({
-            'hour': dt.strftime('%H:%M'),
-            'timestamp': item['dt'],
-            'temperature': round(item['main']['temp']),
-            'feels_like': round(item['main']['feels_like']),
-            'humidity': item['main']['humidity'],
-            'wind_speed': round(item['wind']['speed'] * 3.6, 1),
-            'precipitation': round(item.get('pop', 0) * 100),
-            'condition': w.get('main', 'Clear'),
-            'description': w.get('description', '').title(),
-            'icon': w.get('icon', '01d'),
-        })
-
-    # Aggregate to daily
-    daily_map = {}
-    for item in items:
-        dt = datetime.utcfromtimestamp(item['dt'])
-        day_key = dt.strftime('%Y-%m-%d')
-        w = item.get('weather', [{}])[0]
-        if day_key not in daily_map:
-            daily_map[day_key] = {
-                'date': day_key,
-                'day': dt.strftime('%a'),
-                'temps': [],
-                'winds': [],
-                'humidities': [],
-                'precips': [],
-                'conditions': [],
-                'icons': [],
-            }
-        daily_map[day_key]['temps'].append(item['main']['temp'])
-        daily_map[day_key]['winds'].append(item['wind']['speed'])
-        daily_map[day_key]['humidities'].append(item['main']['humidity'])
-        daily_map[day_key]['precips'].append(item.get('pop', 0) * 100)
-        daily_map[day_key]['conditions'].append(w.get('main', 'Clear'))
-        daily_map[day_key]['icons'].append(w.get('icon', '01d'))
-
-    daily = []
-    for day_key, d in list(daily_map.items())[:7]:
-        from collections import Counter
-        most_common_condition = Counter(d['conditions']).most_common(1)[0][0]
-        most_common_icon = Counter(d['icons']).most_common(1)[0][0]
-        daily.append({
-            'date': d['date'],
-            'day': d['day'],
-            'high': round(max(d['temps'])),
-            'low': round(min(d['temps'])),
-            'humidity': round(sum(d['humidities']) / len(d['humidities'])),
-            'wind_speed': round(max(d['winds']) * 3.6, 1),
-            'precipitation': round(max(d['precips'])),
-            'condition': most_common_condition,
-            'icon': most_common_icon,
-        })
-
-    return {'daily': daily, 'hourly': hourly}
-
-
-# ─── Air Quality ──────────────────────────────────────────────────────────────
-
-def get_aqi(city: str = None, lat: float = None, lon: float = None) -> dict:
-    """Fetch AQI data. Requires lat/lon; geocode city first if needed."""
     if city and not (lat and lon):
         coords = geocode_city(city)
-        lat, lon = coords['lat'], coords['lon']
+        lat = coords['lat']
+        lon = coords['lon']
 
-    key = _cache_key('aqi', lat, lon)
+    key = _cache_key('forecast', lat, lon)
+
     cached = cache.get(key)
     if cached:
         return cached
 
-    raw = _get(f"{AQI_URL}/air_pollution", {'lat': lat, 'lon': lon})
-    result = _normalise_aqi(raw)
+    raw = _get(
+    f"{BASE_URL}/forecast",
+    {
+        "latitude": lat,
+        "longitude": lon,
+
+        "daily": [
+            "temperature_2m_max",
+            "temperature_2m_min"
+        ],
+
+        "timezone": "auto"
+       }
+     )
+
+    result = _normalise_forecast(raw)
+
     cache.set(key, result, CACHE_TTL)
+
     return result
 
 
-def _normalise_aqi(raw: dict) -> dict:
-    item = raw.get('list', [{}])[0]
-    main = item.get('main', {})
-    components = item.get('components', {})
-    aqi_val = main.get('aqi', 1)
+def _normalise_forecast(raw):
 
-    aqi_labels = {1: 'Good', 2: 'Fair', 3: 'Moderate', 4: 'Poor', 5: 'Very Poor'}
-    # Convert OWM 1-5 scale to 0-500 AQI scale
-    aqi_map = {1: 25, 2: 75, 3: 125, 4: 175, 5: 250}
+    daily_data = raw.get('daily', {})
+
+    dates = daily_data.get('time', [])
+
+    highs = daily_data.get('temperature_2m_max', [])
+
+    lows = daily_data.get('temperature_2m_min', [])
+
+    daily = []
+
+    for i in range(len(dates)):
+
+        dt = datetime.strptime(dates[i], '%Y-%m-%d')
+
+        daily.append({
+            'date': dates[i],
+
+            'day': dt.strftime('%a'),
+
+            'high': round(highs[i]),
+
+            'low': round(lows[i]),
+
+            'humidity': 0,
+
+            'wind_speed': 0,
+
+            'precipitation': 0,
+
+            'condition': 'Clear',
+
+            'icon': '01d',
+        })
 
     return {
-        'aqi': aqi_map.get(aqi_val, 25),
-        'aqi_raw': aqi_val,
-        'category': aqi_labels.get(aqi_val, 'Good'),
-        'pm2_5': round(components.get('pm2_5', 0), 1),
-        'pm10': round(components.get('pm10', 0), 1),
-        'o3': round(components.get('o3', 0), 1),
-        'no2': round(components.get('no2', 0), 1),
-        'so2': round(components.get('so2', 0), 1),
-        'co': round(components.get('co', 0) / 1000, 2),  # μg/m³ → mg/m³
-        'nh3': round(components.get('nh3', 0), 1),
+        'daily': daily,
+        'hourly': []
     }
 
 
-# ─── Geocoding / City Search ──────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# AQI
+# ─────────────────────────────────────────────────────────────
 
-def geocode_city(city: str) -> dict:
-    """Convert city name to lat/lon."""
-    key = _cache_key('geo', city)
+def get_aqi(city=None, lat=None, lon=None):
+
+    if city and not (lat and lon):
+        coords = geocode_city(city)
+        lat = coords['lat']
+        lon = coords['lon']
+
+    key = _cache_key('aqi', lat, lon)
+
     cached = cache.get(key)
     if cached:
         return cached
 
-    raw = _get(f"{GEO_URL}/direct", {'q': city, 'limit': 1})
-    if not raw:
-        raise ValueError(f"City '{city}' not found.")
-
-    result = {'lat': raw[0]['lat'], 'lon': raw[0]['lon'],
-              'name': raw[0]['name'], 'country': raw[0].get('country', '')}
-    cache.set(key, result, 3600)  # geo cache 1 hour
-    return result
-
-
-def search_cities(query: str) -> list:
-    """Search for city suggestions."""
-    key = _cache_key('search', query)
-    cached = cache.get(key)
-    if cached:
-        return cached
-
-    raw = _get(f"{GEO_URL}/direct", {'q': query, 'limit': 8})
-    results = [
+    raw = _get(
+        f"{AQI_URL}/air-quality",
         {
-            'name': item.get('name', ''),
-            'state': item.get('state', ''),
-            'country': item.get('country', ''),
-            'lat': item.get('lat'),
-            'lon': item.get('lon'),
+            "latitude": lat,
+            "longitude": lon,
+
+            "hourly": [
+                "pm10",
+                "pm2_5",
+                "uv_index"
+            ],
+
+            "timezone": "auto"
         }
-        for item in raw
-    ]
-    cache.set(key, results, 600)  # 10 min cache for searches
-    return results
-
-
-# ─── AI Recommendations ───────────────────────────────────────────────────────
-
-def get_ai_recommendations(weather_data: dict) -> list:
-    """Rule-based AI weather recommendations."""
-    recs = []
-    temp = weather_data.get('temperature', 20)
-    condition = (weather_data.get('condition') or '').lower()
-    uv = weather_data.get('uv_index', 0)
-    wind = weather_data.get('wind_speed', 0)
-    humidity = weather_data.get('humidity', 50)
-    aqi = weather_data.get('aqi', 50)
-
-    # Temperature-based clothing
-    if temp <= 0:
-        recs.append("🧥 Bundle up! Heavy winter coat, gloves, and a warm scarf are essential.")
-    elif temp <= 10:
-        recs.append("🧤 Wear a warm jacket and consider gloves — it's chilly out there.")
-    elif temp <= 18:
-        recs.append("🧣 A light jacket or cardigan will keep you comfortable.")
-    elif temp <= 26:
-        recs.append("👕 Light clothes are perfect for today's mild temperature.")
-    elif temp <= 33:
-        recs.append("🌞 Opt for breathable, light-colored clothing to stay cool.")
-    else:
-        recs.append("🥵 Extreme heat! Stay indoors during peak hours (10am–4pm).")
-
-    # Precipitation
-    if 'thunder' in condition or 'storm' in condition:
-        recs.append("⛈️ Thunderstorms expected — avoid outdoor activities and seek shelter.")
-    elif 'rain' in condition or 'drizzle' in condition or 'shower' in condition:
-        recs.append("☂️ Carry an umbrella and wear waterproof footwear.")
-
-    # Snow / ice
-    if 'snow' in condition or 'blizzard' in condition or 'sleet' in condition:
-        recs.append("❄️ Icy conditions — drive carefully and wear non-slip footwear.")
-
-    # UV Index
-    if uv >= 8:
-        recs.append("🕶️ Very high UV — apply SPF 50+, wear sunglasses and a hat.")
-    elif uv >= 6:
-        recs.append("🧴 High UV — sunscreen and protective clothing recommended.")
-    elif uv >= 3:
-        recs.append("🌂 Moderate UV — a light SPF is advisable for extended outdoor time.")
-
-    # Wind
-    if wind >= 60:
-        recs.append("💨 Severe wind warning — secure outdoor items and avoid driving.")
-    elif wind >= 35:
-        recs.append("🌬️ Strong winds — hold onto hats and umbrellas.")
-
-    # Humidity
-    if humidity >= 85:
-        recs.append("💧 Very humid — stay hydrated and take it easy on physical activity.")
-
-    # AQI
-    if aqi >= 200:
-        recs.append("😷 Very unhealthy air — wear an N95 mask and limit outdoor time.")
-    elif aqi >= 150:
-        recs.append("😮 Unhealthy air quality — sensitive groups should stay indoors.")
-    elif aqi >= 100:
-        recs.append("⚠️ Moderate air quality — consider a mask if exercising outdoors.")
-
-    # All clear
-    if not recs or (len(recs) == 1 and temp > 10 and temp < 28):
-        recs.append("✨ Great conditions for outdoor activities today — enjoy!")
-
-    return recs[:5]  # Cap at 5 recommendations
-
-
-# ─── Historical Weather ───────────────────────────────────────────────────────
-
-def get_historical_weather(city: str, days: int = 7) -> list:
-    """
-    Return historical weather from stored snapshots.
-    OWM free tier doesn't support historical; we use our WeatherSnapshot model.
-    """
-    from weather_api.models import WeatherSnapshot
-    from django.utils import timezone
-    from datetime import timedelta
-
-    since = timezone.now() - timedelta(days=days)
-    snapshots = (
-        WeatherSnapshot.objects
-        .filter(city__iexact=city, recorded_at__gte=since)
-        .order_by('recorded_at')
-        .values('recorded_at', 'temperature', 'humidity', 'wind_speed', 'aqi')
     )
 
-    # Group by day
-    daily = {}
-    for snap in snapshots:
-        day = snap['recorded_at'].strftime('%Y-%m-%d')
-        if day not in daily:
-            daily[day] = {'temps': [], 'humidities': [], 'winds': []}
-        daily[day]['temps'].append(snap['temperature'])
-        daily[day]['humidities'].append(snap['humidity'] or 0)
-        daily[day]['winds'].append(snap['wind_speed'] or 0)
+    result = _normalise_aqi(raw)
 
-    result = []
-    for day, data in sorted(daily.items()):
-        result.append({
-            'date': day,
-            'avg_temp': round(sum(data['temps']) / len(data['temps']), 1),
-            'max_temp': round(max(data['temps']), 1),
-            'min_temp': round(min(data['temps']), 1),
-            'humidity': round(sum(data['humidities']) / len(data['humidities'])),
-            'wind_speed': round(sum(data['winds']) / len(data['winds']), 1),
-        })
+    cache.set(key, result, CACHE_TTL)
 
     return result
+
+
+def _normalise_aqi(raw):
+
+    hourly = raw.get('hourly', {})
+
+    pm25 = hourly.get('pm2_5', [0])[0]
+
+    pm10 = hourly.get('pm10', [0])[0]
+
+    return {
+
+        'aqi': 50,
+
+        'aqi_raw': 1,
+
+        'category': 'Good',
+
+        'pm2_5': pm25,
+
+        'pm10': pm10,
+
+        'o3': 0,
+
+        'no2': 0,
+
+        'so2': 0,
+
+        'co': 0,
+
+        'nh3': 0,
+    }
+
+
+# ─────────────────────────────────────────────────────────────
+# SEARCH CITIES
+# ─────────────────────────────────────────────────────────────
+
+def search_cities(query: str):
+
+    raw = _get(
+        f"{GEO_URL}/search",
+        {
+            "name": query,
+            "count": 8
+        }
+    )
+
+    results = []
+
+    for item in raw.get('results', []):
+
+        results.append({
+            'name': item.get('name', ''),
+            'country': item.get('country', ''),
+            'state': item.get('admin1', ''),
+            'lat': item.get('latitude'),
+            'lon': item.get('longitude'),
+        })
+
+    return results
+
+def reverse_geocode(lat, lon):
+    try:
+        response = requests.get(
+            "https://nominatim.openstreetmap.org/reverse",
+            params={
+                "lat": lat,
+                "lon": lon,
+                "format": "jsonv2"
+            },
+            headers={
+                "User-Agent": "SkyPulse"
+            },
+            timeout=10
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        address = data.get("address", {})
+
+        city = (
+            address.get("city")
+            or address.get("town")
+            or address.get("village")
+            or address.get("county")
+            or "Current Location"
+        )
+
+        return {
+            "name": city,
+            "country": address.get("country", "")
+        }
+
+    except Exception as e:
+        logger.error(f"Reverse geocode error: {e}")
+
+        return {
+            "name": "Current Location",
+            "country": ""
+        }
+
+def get_ai_recommendations(data):
+
+    city = data.get('city')
+    lat = data.get('lat')
+    lon = data.get('lon')
+
+    weather = get_current_weather(
+        city=city,
+        lat=lat,
+        lon=lon
+    )
+
+    temp = weather.get('temperature', 0)
+    humidity = weather.get('humidity', 0)
+    wind_speed = weather.get('wind_speed', 0)
+
+    recommendations = []
+
+    if temp > 35:
+        recommendations.append(
+            "🔥 Very hot weather. Stay hydrated and avoid direct sunlight."
+        )
+    elif temp > 28:
+        recommendations.append(
+            "😎 Warm weather. Light cotton clothes recommended."
+        )
+    elif temp < 15:
+        recommendations.append(
+            "🧥 Cool weather. Consider carrying a jacket."
+        )
+    else:
+        recommendations.append(
+            "✨ Pleasant weather for outdoor activities."
+        )
+
+    if humidity > 80:
+        recommendations.append(
+            "💧 High humidity today."
+        )
+
+    if wind_speed > 25:
+        recommendations.append(
+            "💨 Strong winds detected."
+        )
+
+    return recommendations
