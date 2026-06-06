@@ -1,4 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from 'react';
 
 const ThemeContext = createContext();
 
@@ -13,6 +18,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = document.documentElement;
+
     if (isDark) {
       root.classList.add('dark');
       document.body.classList.remove('light-mode');
@@ -20,52 +26,93 @@ export const ThemeProvider = ({ children }) => {
       root.classList.remove('dark');
       document.body.classList.add('light-mode');
     }
-    localStorage.setItem('skypulse-theme', isDark ? 'dark' : 'light');
+
+    localStorage.setItem(
+      'skypulse-theme',
+      isDark ? 'dark' : 'light'
+    );
   }, [isDark]);
 
-  const toggleTheme = () => setIsDark(prev => !prev);
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
 
   const getWeatherBgClass = () => {
     if (isNight) return 'bg-weather-night';
-    const map = {
-      clear: 'bg-weather-clear',
-      sunny: 'bg-weather-clear',
-      cloudy: 'bg-weather-cloudy',
-      overcast: 'bg-weather-cloudy',
-      rainy: 'bg-weather-rainy',
-      rain: 'bg-weather-rainy',
-      drizzle: 'bg-weather-rainy',
-      snowy: 'bg-weather-snowy',
-      snow: 'bg-weather-snowy',
-      stormy: 'bg-weather-stormy',
-      storm: 'bg-weather-stormy',
-      thunderstorm: 'bg-weather-stormy',
-      foggy: 'bg-weather-foggy',
-      fog: 'bg-weather-foggy',
-      mist: 'bg-weather-foggy',
-    };
-    return map[weatherCondition?.toLowerCase()] || 'bg-weather-default';
+
+    const condition =
+      weatherCondition?.toLowerCase() || '';
+
+    if (condition.includes('clear') || condition.includes('sunny')) {
+      return 'bg-weather-clear';
+    }
+
+    if (
+      condition.includes('cloud') ||
+      condition.includes('overcast')
+    ) {
+      return 'bg-weather-cloudy';
+    }
+
+    if (
+      condition.includes('rain') ||
+      condition.includes('drizzle')
+    ) {
+      return 'bg-weather-rainy';
+    }
+
+    if (
+      condition.includes('snow') ||
+      condition.includes('blizzard')
+    ) {
+      return 'bg-weather-snowy';
+    }
+
+    if (
+      condition.includes('storm') ||
+      condition.includes('thunder')
+    ) {
+      return 'bg-weather-stormy';
+    }
+
+    if (
+      condition.includes('fog') ||
+      condition.includes('mist') ||
+      condition.includes('haze')
+    ) {
+      return 'bg-weather-foggy';
+    }
+
+    return 'bg-weather-default';
   };
 
   return (
-    <ThemeContext.Provider value={{
-      isDark,
-      toggleTheme,
-      weatherCondition,
-      setWeatherCondition,
-      isNight,
-      setIsNight,
-      getWeatherBgClass,
-    }}>
+    <ThemeContext.Provider
+      value={{
+        isDark,
+        toggleTheme,
+        weatherCondition,
+        setWeatherCondition,
+        isNight,
+        setIsNight,
+        getWeatherBgClass,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 };
 
 export const useTheme = () => {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider');
-  return ctx;
+  const context = useContext(ThemeContext);
+
+  if (!context) {
+    throw new Error(
+      'useTheme must be used within ThemeProvider'
+    );
+  }
+
+  return context;
 };
 
 export default ThemeContext;

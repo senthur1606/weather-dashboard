@@ -149,11 +149,49 @@ def get_current_weather(city=None, lat=None, lon=None):
 
     return result
 
+def get_weather_condition(weather_code):
+    mapping = {
+        0: ("Clear", "clear"),
+        1: ("Mainly Clear", "clear"),
+        2: ("Partly Cloudy", "cloudy"),
+        3: ("Overcast", "cloudy"),
+
+        45: ("Fog", "foggy"),
+        48: ("Fog", "foggy"),
+
+        51: ("Light Drizzle", "rainy"),
+        53: ("Drizzle", "rainy"),
+        55: ("Heavy Drizzle", "rainy"),
+
+        61: ("Light Rain", "rainy"),
+        63: ("Rain", "rainy"),
+        65: ("Heavy Rain", "rainy"),
+
+        71: ("Light Snow", "snowy"),
+        73: ("Snow", "snowy"),
+        75: ("Heavy Snow", "snowy"),
+
+        80: ("Rain Showers", "rainy"),
+        81: ("Heavy Showers", "rainy"),
+        82: ("Violent Rain", "rainy"),
+
+        95: ("Thunderstorm", "stormy"),
+        96: ("Thunderstorm", "stormy"),
+        99: ("Thunderstorm", "stormy"),
+    }
+
+    return mapping.get(
+        weather_code,
+        ("Unknown", "default")
+    )
+
 
 def _normalise_current(raw):
 
     current = raw.get('current', {})
     daily= raw.get('daily',{})
+    weather_code = current.get('weather_code', 0)
+    description, condition = get_weather_condition(weather_code)
 
     return {
         'city': raw.get('city_name',''),
@@ -207,9 +245,9 @@ def _normalise_current(raw):
             [0]
         )[0],
 
-        'condition': 'Clear',
-
-        'description': 'Open-Meteo Weather',
+        'condition': condition,
+        
+        'description': description,
 
         'icon': '01d',
 
@@ -223,7 +261,6 @@ def _normalise_current(raw):
 
         'dew_point': None,
     }
-
 
 # ─────────────────────────────────────────────────────────────
 # FORECAST

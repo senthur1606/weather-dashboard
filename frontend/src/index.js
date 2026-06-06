@@ -2,9 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+import { ThemeProvider } from './context/ThemeContext';
+
+const root = ReactDOM.createRoot(
+  document.getElementById('root')
+);
+
 root.render(
-    <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
 );
 
 // PWA Service Worker registration

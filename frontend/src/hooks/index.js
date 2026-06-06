@@ -132,3 +132,4 @@ export const useVoiceSearch = (onResult) => {
 
   return { listening, supported, startListening, stopListening };
 };
+

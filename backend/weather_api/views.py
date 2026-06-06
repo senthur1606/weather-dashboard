@@ -3,100 +3,57 @@ SkyPulse Weather API Views
 All weather data endpoints, auth, favorites, AQI, recommendations, and export.
 """
 import logging
+import uuid
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.core.cache import cache
 from django.http import HttpResponse
+from django.conf import settings
+from django.utils import timezone
 from rest_framework import status, generics
 from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+
 
 from . import services
-from .models import FavoriteCity, WeatherAlert, UserProfile, WeatherSnapshot
+from .models import FavoriteCity, WeatherAlert, WeatherSnapshot
 from .serializers import (
-    UserRegistrationSerializer, UserProfileSerializer,
     FavoriteCitySerializer, WeatherAlertSerializer,
     CurrentWeatherSerializer, ForecastSerializer, AQISerializer,
     CitySearchSerializer, RecommendationRequestSerializer,
     WeatherSnapshotSerializer,
 )
-from .utils import success_response, error_response, generate_weather_pdf
+from .utils import get_client_ip, success_response, error_response, generate_weather_pdf
 
 logger = logging.getLogger('weather_api')
 
-
-# ─── Health Check ─────────────────────────────────────────────────────────────
+# ── Health Check ──────────────────────────────────────────────────────────────
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    return Response({'status': 'ok', 'service': 'SkyPulse Weather API', 'version': '1.0.0'})
+    return Response({
+        'status': 'ok',
+        'service': 'SkyPulse Auth API',
+        'version': '1.0.0',
+        'timestamp': timezone.now().isoformat(),
+    })
 
+# ── Token Verify ──────────────────────────────────────────────────────────────
 
-# ─── Auth ─────────────────────────────────────────────────────────────────────
-
-class RegisterView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        serializer = UserRegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            refresh = RefreshToken.for_user(user)
-            return Response({
-                'message': 'Account created successfully.',
-                'user': {'id': user.id, 'username': user.username, 'email': user.email},
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
-            }, status=status.HTTP_201_CREATED)
-        return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LoginView(APIView):
-    permission_classes = [AllowAny]
-
-    def post(self, request):
-        from django.contrib.auth import authenticate
-        username = request.data.get('username') or request.data.get('email', '')
-        password = request.data.get('password', '')
-
-        # Allow login with email
-        if '@' in username:
-            try:
-                user_obj = User.objects.get(email=username)
-                username = user_obj.username
-            except User.DoesNotExist:
-                pass
-
-        user = authenticate(username=username, password=password)
-        if not user:
-            return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        refresh = RefreshToken.for_user(user)
-        return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'user': {'id': user.id, 'username': user.username, 'email': user.email},
-        })
-
-
-class ProfileView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        return Response(UserProfileSerializer(profile).data)
-
-    def patch(self, request):
-        profile, _ = UserProfile.objects.get_or_create(user=request.user)
-        serializer = UserProfileSerializer(profile, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_token(request):
+    """Lightweight endpoint to check if an access token is still valid."""
+    # If JWT authentication passed, user is set
+    if request.user and request.user.is_authenticated:
+        return Response({'valid': True, 'user_id': request.user.id})
+    return Response({'valid': False}, status=401)
 
 # ─── Current Weather ──────────────────────────────────────────────────────────
 

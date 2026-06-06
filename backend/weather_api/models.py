@@ -1,7 +1,8 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
+from datetime import timedelta
 
 class FavoriteCity(models.Model):
     """User's saved favorite cities."""
@@ -59,27 +60,6 @@ class WeatherSearchLog(models.Model):
 
     def __str__(self):
         return f"{self.city} ({self.search_count} searches)"
-
-
-class UserProfile(models.Model):
-    """Extended user profile for preferences."""
-    UNIT_CHOICES = [('metric', 'Metric (°C)'), ('imperial', 'Imperial (°F)')]
-    LANG_CHOICES = [
-        ('en', 'English'), ('es', 'Spanish'), ('fr', 'French'),
-        ('de', 'German'), ('ja', 'Japanese'), ('zh', 'Chinese'),
-    ]
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    temperature_unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='metric')
-    language = models.CharField(max_length=5, choices=LANG_CHOICES, default='en')
-    email_alerts = models.BooleanField(default=False)
-    default_city = models.CharField(max_length=100, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Profile: {self.user.username}"
-
 
 class WeatherSnapshot(models.Model):
     """Cache snapshots of weather data for historical queries."""

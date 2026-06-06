@@ -26,7 +26,6 @@ const AppContent = () => {
         <Navbar />
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/login" element={<Navigate to="/" />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/compare" element={<Compare />} />
         </Routes>
@@ -55,6 +54,29 @@ function App() {
       <ThemeProvider>
         <Router>
           <AppContent />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              style: {
+                background: 'rgba(18, 17, 30, 0.95)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.1)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '14px',
+                fontFamily: 'DM Sans, sans-serif',
+                fontSize: '14px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              },
+              success: {
+                iconTheme: { primary: '#6366f1', secondary: '#fff' },
+                duration: 3000,
+              },
+              error: {
+                iconTheme: { primary: '#ef4444', secondary: '#fff' },
+                duration: 4000,
+              },
+            }}
+          />
         </Router>
       </ThemeProvider>
     </Provider>

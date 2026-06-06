@@ -15,6 +15,7 @@ import { formatLastUpdated } from '../../utils/weatherUtils';
 import { FiHeart, FiRefreshCw, FiNavigation, FiAlertTriangle, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
+
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { current, forecast, aqi, loading, error, lastUpdated } = useSelector(s => s.weather);

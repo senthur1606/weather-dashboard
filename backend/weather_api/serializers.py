@@ -1,39 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import FavoriteCity, WeatherAlert, UserProfile, WeatherSnapshot
-
-
-# ─── Auth ─────────────────────────────────────────────────────────────────────
-
-class UserRegistrationSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=8)
-    password2 = serializers.CharField(write_only=True, label='Confirm Password')
-
-    class Meta:
-        model = User
-        fields = ['username', 'email', 'password', 'password2', 'first_name', 'last_name']
-
-    def validate(self, data):
-        if data['password'] != data['password2']:
-            raise serializers.ValidationError({'password2': 'Passwords do not match.'})
-        return data
-
-    def create(self, validated_data):
-        validated_data.pop('password2')
-        user = User.objects.create_user(**validated_data)
-        UserProfile.objects.create(user=user)
-        return user
-
-
-class UserProfileSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='user.username', read_only=True)
-    email = serializers.EmailField(source='user.email', read_only=True)
-
-    class Meta:
-        model = UserProfile
-        fields = ['username', 'email', 'temperature_unit', 'language', 'email_alerts', 'default_city']
-
-
+from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from .models import FavoriteCity, WeatherAlert, WeatherSnapshot
 # ─── Favorites ────────────────────────────────────────────────────────────────
 
 class FavoriteCitySerializer(serializers.ModelSerializer):

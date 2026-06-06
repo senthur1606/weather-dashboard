@@ -1,13 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
 import weatherReducer from './slices/weatherSlice';
 import favoritesReducer from './slices/favoritesSlice';
-import authReducer from './slices/authSlice';
 
 export const store = configureStore({
   reducer: {
     weather: weatherReducer,
     favorites: favoritesReducer,
-    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

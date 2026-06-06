@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import FavoriteCity, WeatherAlert, UserProfile, WeatherSnapshot
+from .models import FavoriteCity, WeatherAlert, WeatherSnapshot
 
 
 @admin.register(FavoriteCity)
@@ -39,13 +39,6 @@ class WeatherAlertAdmin(admin.ModelAdmin):
     def resend_notifications(self, request, queryset):
         queryset.update(notified=False)
     resend_notifications.short_description = 'Queue for re-notification'
-
-
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'temperature_unit', 'language', 'email_alerts', 'default_city']
-    list_filter = ['temperature_unit', 'language', 'email_alerts']
-    search_fields = ['user__username', 'user__email', 'default_city']
 
 
 @admin.register(WeatherSnapshot)

@@ -8,6 +8,46 @@ from rest_framework.views import exception_handler
 
 logger = logging.getLogger('weather_api')
 
+def get_client_ip(request) -> str:
+    """Extract real client IP, handling proxies."""
+    forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '0.0.0.0')
+
+def custom_exception_handler(exc, context):
+    """
+    Centralised exception handler — normalises all errors to
+    { "error": "...", "status_code": N } for predictable frontend handling.
+    """
+    response = exception_handler(exc, context)
+
+    if response is not None:
+        detail = response.data
+
+        if isinstance(detail, dict):
+            if 'detail' in detail:
+                msg = str(detail['detail'])
+            else:
+                # Flatten field errors into a single string
+                parts = []
+                for key, val in detail.items():
+                    if isinstance(val, list):
+                        parts.extend(str(v) for v in val)
+                    else:
+                        parts.append(str(val))
+                msg = ' '.join(parts)
+        elif isinstance(detail, list):
+            msg = ' '.join(str(d) for d in detail)
+        else:
+            msg = str(detail)
+
+        response.data = {
+            'error': msg,
+            'status_code': response.status_code,
+        }
+
+    return response
 
 # ─── Response Helpers ─────────────────────────────────────────────────────────
 

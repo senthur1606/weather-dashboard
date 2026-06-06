@@ -4,13 +4,9 @@ from . import views
 app_name = 'weather_api'
 
 urlpatterns = [
-    # Health
+    # Utility
     path('health/', views.health_check, name='health'),
-
-    # Auth
-    path('auth/register/', views.RegisterView.as_view(), name='register'),
-    path('auth/login/', views.LoginView.as_view(), name='login'),
-    path('auth/profile/', views.ProfileView.as_view(), name='profile'),
+    path('token/verify/', views.verify_token, name='token-verify'),
 
     # Weather
     path('weather/current/', views.CurrentWeatherView.as_view(), name='current-weather'),
