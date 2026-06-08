@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { toggleFavorite } from '../../store/slices/favoritesSlice';
+import { fetchWeather } from '../../store/slices/weatherSlice';
 import { getWeatherIcon, getTempColor } from '../../utils/weatherUtils';
 import weatherApi from '../../services/weatherApi';
 import SearchBar from '../../components/SearchBar';
@@ -88,10 +89,10 @@ const Favorites = () => {
   };
 
   const handleCityClick = (city) => {
-    navigate('/', { state: { city } });
-    dispatch({ type: 'weather/fetchWeather', payload: city });
+  localStorage.setItem('skypulse-last-city', city);
+  dispatch(fetchWeather(city));
+  navigate('/');
   };
-
   const handleAddCity = (city) => {
     if (!items.includes(city)) {
       dispatch(toggleFavorite(city));
