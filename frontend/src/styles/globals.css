@@ -227,10 +227,40 @@ body {
 
 /* ===== LIGHT MODE ===== */
 .light-mode .glass-card {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(172, 185, 190, 0.65);
   border-color: rgba(0, 0, 0, 0.08);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 .light-mode .glass-card:hover {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(205, 229, 230, 0.8);
+}
+/* ===== LIGHT MODE TEXT ===== */
+
+.light-mode {
+  color: #000;
+}
+
+.light-mode h1,
+.light-mode h2,
+.light-mode h3,
+.light-mode h4,
+.light-mode h5,
+.light-mode h6,
+.light-mode p,
+.light-mode span,
+.light-mode div,
+.light-mode label,
+.light-mode button,
+.light-mode a,
+.light-mode li {
+  color: #000 !important;
+}
+.light-mode input,
+.light-mode textarea {
+  color: #000 !important;
+}
+
+.light-mode input::placeholder,
+.light-mode textarea::placeholder {
+  color: rgba(0, 0, 0, 0.6) !important;
 }

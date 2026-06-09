@@ -10,6 +10,7 @@ import weatherApi from '../../services/weatherApi';
 import AQIWidget from '../../components/AQIWidget';
 import Charts from '../../components/Charts';
 import AIRecommendations from '../../components/AIRecommendations';
+import WeatherMap from '../../components/weathermap/WeatherMap';
 import { useGeolocation, useInterval } from '../../hooks';
 import { formatLastUpdated } from '../../utils/weatherUtils';
 import { FiHeart, FiRefreshCw, FiNavigation, FiAlertTriangle, FiDownload } from 'react-icons/fi';
@@ -207,6 +208,7 @@ const handleExport = async () => {
           {/* Left column - main weather */}
           <div className="xl:col-span-2 space-y-4">
             <WeatherCard data={current} loading={loading} />
+            <WeatherMap/>
             <ForecastCard data={forecast} loading={loading} />
             <Charts forecast={forecast} />
           </div>
