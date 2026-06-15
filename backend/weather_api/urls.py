@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 app_name = 'weather_api'
 
 urlpatterns = [
@@ -23,4 +24,5 @@ urlpatterns = [
     # AI & Export
     path('weather/recommendations/', views.RecommendationsView.as_view(), name='recommendations'),
     path('weather/export/', views.ExportReportView.as_view(), name='export'),
+    path("ai/chat/", views.AIChatView.as_view(), name="ai-chat")
 ]

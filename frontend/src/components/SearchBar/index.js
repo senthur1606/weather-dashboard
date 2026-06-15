@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className = '' }) => {
   const dispatch = useDispatch();
   const { searchResults, searchLoading } = useSelector(s => s.weather);
+  const [recentSearches, setRecentSearches] = useState([])
   const [query, setQuery] = useState('');
   const [focused, setFocused] = useState(false);
   const inputRef = useRef(null);
@@ -29,6 +30,11 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
     }
   }, [debouncedQuery, dispatch]);
 
+  useEffect(()=>{
+    const searches= JSON.parse(localStorage.getItem("recentSearches") || "[]");
+    setRecentSearches(searches);
+  },[]);
+
   useEffect(() => {
     const handler = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -40,7 +46,9 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
   }, []);
 
   const handleSelect = (city) => {
-    onSelect(city.name || city);
+    const cityName = city.name || city;
+    saveRecentSearch(cityName);
+    onSelect(cityName);
     setQuery('');
     setFocused(false);
     dispatch(clearSearch());
@@ -51,6 +59,24 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
     dispatch(clearSearch());
     inputRef.current?.focus();
   };
+
+  const saveRecentSearch = (city)=>{
+    let recent = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+
+    recent = recent.filter(
+      item => item.toLowerCase() !== city.toLowerCase()
+    );
+
+    recent.unshift(city);
+
+    recent = recent.slice(0, 5);
+
+    localStorage.setItem("recentSearches",
+      JSON.stringify(recent)
+    );
+
+    setRecentSearches(recent);
+  }
 
   const showDropdown = focused && (searchResults.length > 0 || searchLoading) && query.length >= 2;
 
@@ -155,6 +181,46 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
           </motion.div>
         )}
       </AnimatePresence>
+      {recentSearches.length > 0 && !query && (
+      <div className="mt-2 glass-card rounded-xl px-3 py-2">
+          <div className="flex items-center justify-between mb-2">
+           <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider"> Recent Searches </span>
+
+      <button
+        onClick={() => {
+          localStorage.removeItem("recentSearches");
+          setRecentSearches([]);
+        }}
+        className="text-xs text-red-400 hover:text-red-300"
+      >
+        Clear
+      </button>
+    </div>
+
+    <div className="flex flex-wrap gap-2">
+      {recentSearches.map((city) => (
+        <button
+          key={city}
+          onClick={() => handleSelect(city)}
+          className="
+            px-3 py-1
+            rounded-full
+            bg-white/5
+            border border-white/10
+            hover:border-sky-500/40
+            hover:bg-sky-500/10
+            text-xs
+            text-white/70
+            hover:text-white
+            transition-all
+          "
+        >
+          <span>{city}</span>
+        </button>
+      ))}
+      </div>
+    </div> 
+  )}
     </div>
   );
 };

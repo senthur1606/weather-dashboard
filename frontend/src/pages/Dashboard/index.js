@@ -118,7 +118,7 @@ const handleExport = async () => {
   }
 };
 
-  const isFavorite = favorites.includes(current?.city);
+const isFavorite = favorites.includes(current?.city);
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
@@ -133,17 +133,17 @@ const handleExport = async () => {
           <div className="flex-1">
             <SearchBar onSelect={handleCitySelect} />
           </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center gap-3">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={getLocation}
               disabled={geoLoading}
               title="Use my location"
-              className="flex items-center gap-2 px-4 py-3 glass-card rounded-2xl text-white/70 hover:text-white transition-all text-sm font-body disabled:opacity-50"
+              className=" w-12 h-12 rounded-2x1 glass-card flex items-center justify-center text-sky-400 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] transition-all disabled:opacity-50"
             >
-              <FiNavigation size={15} className={geoLoading ? 'animate-spin' : ''} />
-              <span className="hidden md:inline">Locate Me</span>
+              <FiNavigation />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -151,7 +151,7 @@ const handleExport = async () => {
               onClick={handleFavoriteToggle}
               disabled={!current}
               title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              className={`w-12 rounded-2xl glass-card flex items-center justify-center transition-all ${
+              className={`w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.35)]${
                 isFavorite ? 'text-red-400' : 'text-white/50 hover:text-red-400'
               }`}
             >
@@ -163,7 +163,7 @@ const handleExport = async () => {
               onClick={() => current?.city && dispatch(fetchWeather(current.city))}
               disabled={loading}
               title="Refresh"
-              className="w-12 rounded-2xl glass-card flex items-center justify-center text-white/50 hover:text-white transition-all"
+              className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.35)]"
             >
               <FiRefreshCw size={15} className={loading ? 'animate-spin' : ''} />
             </motion.button>
@@ -172,7 +172,7 @@ const handleExport = async () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleExport}
               title="Export report"
-              className="w-12 rounded-2xl glass-card flex items-center justify-center text-white/50 hover:text-white transition-all"
+              className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 hover:text-purple-400 hover:shadow-[0_0_20px_rgba(168,85,247,0.35)] transition-all"
             >
               <FiDownload size={15} />
             </motion.button>

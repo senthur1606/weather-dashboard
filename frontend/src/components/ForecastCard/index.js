@@ -10,7 +10,6 @@ const ForecastCard = ({ data, loading }) => {
   if (!data) return null;
 
   const items = view === 'daily' ? (data.daily || []) : (data.hourly || []).slice(0, 24);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

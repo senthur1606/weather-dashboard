@@ -37,9 +37,9 @@ const Charts = ({ forecast, historical }) => {
     name: h.hour,
     temp: h.temperature,
     precipitation: h.precipitation ?? 0,
-    wind: h.wind_speed,
+    wind: h.wind_speed ?? 0,
+    humidity: h.humidity ?? 0,
   })) || [];
-
   const charts = [
     { key: 'temperature', label: 'Temperature' },
     { key: 'precipitation', label: 'Rain' },
@@ -95,7 +95,7 @@ const Charts = ({ forecast, historical }) => {
               <Area type="monotone" dataKey="low" stroke="#60a5fa" strokeWidth={2} fill="url(#lowGrad)" name="Low" />
             </AreaChart>
           ) : activeChart === 'precipitation' ? (
-            <BarChart data={dailyData}>
+            <BarChart data={hourlyData}>
               <defs>
                 <linearGradient id="precipGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#38bdf8" stopOpacity={0.9} />
@@ -118,7 +118,7 @@ const Charts = ({ forecast, historical }) => {
                 activeDot={{ r: 5, fill: '#34d399', stroke: 'rgba(255,255,255,0.3)', strokeWidth: 2 }} />
             </LineChart>
           ) : (
-            <AreaChart data={dailyData}>
+            <AreaChart data={hourlyData}>
               <defs>
                 <linearGradient id="humidGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.4} />

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 
-const OPENWEATHER_API_KEY = "YOUR_OPENWEATHER_API_KEY"; // ← Replace with your key
+const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 
 const MAP_LAYERS = [
   {
@@ -136,39 +136,16 @@ export default function WeatherMap() {
 `,
         iconAnchor: [40, 10],
       });
-      markerRef.current = L.marker(newCenter,
+      markerRef.current = L.marker(center,
   { icon: customIcon }
 ).addTo(map);
-
-markerRef.current.bindPopup(`
-  <div style="min-width:220px;font-family:Arial,sans-serif;">
-    <h3 style="margin:0 0 10px;color:#0ea5e9;">
-      📍 ${current.city}
-    </h3>
-
-    <div style="
-      font-size:32px;
-      font-weight:bold;
-      color:#f97316;
-      margin-bottom:10px;
-    ">
-      🌡️ ${current.temperature ?? "--"}°C
-    </div>
-
-    <div style="font-size:14px;line-height:1.8;">
-      <div>💧 Humidity: ${current.humidity ?? "--"}%</div>
-      <div>💨 Wind: ${current.wind_speed ?? "--"} km/h</div>
-      <div>🌡️ Pressure: ${current.pressure ?? "--"} hPa</div>
-      <div>👁️ Visibility: ${current.visibility ?? "--"} km</div>
-      <div>☀️ UV Index: ${current.uv_index ?? "--"}</div>
-      <div>🌅 Sunrise: ${current.sunrise ?? "--"}</div>
-      <div>🌇 Sunset: ${current.sunset ?? "--"}</div>
-    </div>
-  </div>
-`);
     }
 
     mapInstanceRef.current = map;
+    setTimeout(()=>{
+      map.invalidateSize();
+    },200);
+
     setMapReady(true);
 
     return () => {
@@ -210,8 +187,6 @@ markerRef.current.bindPopup(`
     Number(current.lon)
   ];
 
-  console.log("Moving map to:", current.city, newCenter);
-
   map.flyTo(newCenter, 10, {
     duration: 1.5
   });
@@ -243,9 +218,50 @@ markerRef.current.bindPopup(`
   });
 
   markerRef.current = L.marker(
-    newCenter,
-    { icon: customIcon }
-  ).addTo(map);
+  newCenter,
+  { icon: customIcon }
+).addTo(map);
+
+markerRef.current.bindPopup(`
+  <div style="
+    min-width:220px;
+    font-family:Arial,sans-serif;
+  ">
+    <h3 style="
+      margin-bottom:10px;
+      color:#0ea5e9;
+    ">
+      📍 ${current.city}
+    </h3>
+
+    <div style="
+      font-size:28px;
+      font-weight:bold;
+      color:#f97316;
+      margin-bottom:10px;
+    ">
+      🌡️ ${current.temperature ?? "--"}°C
+    </div>
+
+    <p>💧 Humidity: ${current.humidity ?? "--"}%</p>
+    <p>💨 Wind: ${current.wind_speed ?? "--"} km/h</p>
+    <p>🌡️ Pressure: ${current.pressure ?? "--"} hPa</p>
+    <p>👁️ Visibility: ${current.visibility ?? "--"} km</p>
+    <p>☀️ UV Index: ${current.uv_index ?? "--"}</p>
+    <p>🌅 Sunrise: ${current.sunrise ?? "--"}</p>
+    <p>🌇 Sunset: ${current.sunset ?? "--"}</p>
+  </div>
+`);
+
+markerRef.current.on("mouseover", function(){
+  this.openPopup();
+});
+
+markerRef.current.on("mouseout", function(){
+  setTimeout(()=>{
+    this.closePopup();
+  },1000);
+});
 
 }, [current?.lat, current?.lon, mapReady]);
 
@@ -366,6 +382,10 @@ markerRef.current.bindPopup(`
           style={{
             height: "400px",
             width: "100%",
+            maxWidth:"100%",
+            overflow: "hidden",
+            position:"relative",
+            zIndex: 1,
             background: "#0f172a",
           }}
         />

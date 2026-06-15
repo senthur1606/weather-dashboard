@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
 import weatherApi from '../../services/weatherApi';
 import { FiCpu, FiRefreshCw } from 'react-icons/fi';
@@ -6,7 +7,7 @@ import { FiCpu, FiRefreshCw } from 'react-icons/fi';
 const AIRecommendations = ({ weatherData }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
-
+  const navigate = useNavigate();
   const fetchRecs = async () => {
     if (!weatherData) return;
     setLoading(true);
@@ -27,7 +28,9 @@ const AIRecommendations = ({ weatherData }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="glass-card rounded-3xl p-6"
+      whileHover={{ delay: 0.4 }}
+      onClick={()=> navigate('/ai-assistant')}
+      className="glass-card rounded-3xl p-6 cursor-pointer"
     >
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -71,7 +74,10 @@ const AIRecommendations = ({ weatherData }) => {
           </AnimatePresence>
         </div>
       )}
-
+      <button
+      onClick={() => navigate("/ai-assistant")}
+      className="mt-4 w-full py-2 rounded-xl bg-violet-500/20 text-violet-300 hover:bg-violet-500/30 transition-all"
+      > 🤖 Open AI Assistant </button> 
       <div className="mt-4 flex items-center gap-1.5 text-white/30 text-xs">
         <FiCpu size={10} />
         <span className="font-body">Powered by AI analysis</span>

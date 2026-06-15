@@ -18,10 +18,12 @@ from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.views import APIView
 
 
 from . import services
 from .models import FavoriteCity, WeatherAlert, WeatherSnapshot
+from .ai_service import ask_gemini
 from .serializers import (
     FavoriteCitySerializer, WeatherAlertSerializer,
     CurrentWeatherSerializer, ForecastSerializer, AQISerializer,
@@ -150,6 +152,29 @@ class AQIView(APIView):
         except Exception as e:
             logger.exception(e)
             return error_response('Failed to fetch AQI data.', 500)
+
+# ____________ AI chat view __________________________________        
+class AIChatView(APIView):
+
+    permission_classes = []
+
+    def post(self, request):
+
+        message = request.data.get("message")
+
+        weather_context = request.data.get(
+            "weather_context",
+            {}
+        )
+
+        reply = ask_gemini(
+            message,
+            weather_context
+        )
+
+        return Response({
+            "reply": reply
+        })
 
 
 # ─── City Search ──────────────────────────────────────────────────────────────

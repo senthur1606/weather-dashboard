@@ -21,7 +21,7 @@ lib64/
 .venv/
 venv/
 ENV/
-env/
+.env
 *.env
 !*.env.example
 *.log

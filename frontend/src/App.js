@@ -7,6 +7,7 @@ import { store } from './store';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Navbar from './components/Navbar';
 import WeatherBackground from './components/WeatherBackground';
+import AIAssistant from './pages/AIAssistant';
 import Dashboard from './pages/Dashboard';
 import Favorites from './pages/Favorites';
 import Compare from './pages/Compare';
@@ -28,6 +29,7 @@ const AppContent = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/compare" element={<Compare />} />
+          <Route path="/ai-assistant" element={<AIAssistant/>}/>
         </Routes>
       </div>
       <Toaster

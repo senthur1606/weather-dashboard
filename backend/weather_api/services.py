@@ -290,6 +290,13 @@ def get_forecast(city=None, lat=None, lon=None):
             "temperature_2m_min"
         ],
 
+        "hourly":[
+            "temperature_2m",
+            "precipitation_probability",
+            "relative_humidity_2m",
+            "wind_speed_10m"
+        ],
+
         "timezone": "auto"
        }
      )
@@ -312,6 +319,25 @@ def _normalise_forecast(raw):
     lows = daily_data.get('temperature_2m_min', [])
 
     daily = []
+
+    hourly_raw = raw.get('hourly', {})
+
+    times = hourly_raw.get('time', [])
+    temps = hourly_raw.get("temperature_2m",[])
+    rain = hourly_raw.get('precipitation_probability',[])
+    humidity = hourly_raw.get("relative_humidity_2m", [])
+    wind = hourly_raw.get("wind_speed_10m", [])
+    hourly = []
+
+    for i in range(min(24, len(times))):
+     hourly.append({
+       "hour": times[i][11:16],
+       "temperature": round(temps[i]),
+       "humidity": humidity[i] if i < len(humidity) else 0,
+       "wind_speed": wind[i] if i < len(wind) else 0,
+       "precipitation": rain[i] if i < len(rain) else 0,
+       "condition": "Clear"
+    })
 
     for i in range(len(dates)):
 
@@ -339,7 +365,7 @@ def _normalise_forecast(raw):
 
     return {
         'daily': daily,
-        'hourly': []
+        'hourly': hourly
     }
 
 
