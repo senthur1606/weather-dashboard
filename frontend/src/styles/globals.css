@@ -264,3 +264,112 @@ body {
 .light-mode textarea::placeholder {
   color: rgba(0, 0, 0, 0.6) !important;
 }
+
+/* ===== ADVANCED WEATHER EFFECTS ===== */
+
+.cloud {
+  position: absolute;
+  width: 220px;
+  height: 70px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  filter: blur(12px);
+  animation: cloudMove linear infinite;
+}
+
+@keyframes cloudMove {
+  from {
+    transform: translateX(-300px);
+  }
+  to {
+    transform: translateX(calc(100vw + 300px));
+  }
+}
+
+.fog-layer {
+  position: absolute;
+  width: 150%;
+  height: 140px;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(20px);
+  animation: fogMove 20s linear infinite;
+}
+
+@keyframes fogMove {
+  from {
+    transform: translateX(-10%);
+  }
+  to {
+    transform: translateX(10%);
+  }
+}
+
+.sun-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 215, 64, 0.9);
+  box-shadow: 0 0 20px rgba(255,215,64,0.8);
+  animation: sparkle 4s infinite ease-in-out;
+}
+
+@keyframes sparkle {
+  0%,100% {
+    opacity: .2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(2);
+  }
+}
+
+.lightning-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  pointer-events: none;
+  animation: lightning 6s infinite;
+}
+
+@keyframes lightning {
+  0%,92%,100% {
+    opacity: 0;
+  }
+  93% {
+    opacity: .8;
+  }
+  94% {
+    opacity: 0;
+  }
+  95% {
+    opacity: .4;
+  }
+}
+
+.sun-glow {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255,220,120,.8) 0%,
+    rgba(255,220,120,.2) 40%,
+    transparent 70%
+  );
+  animation: pulseSun 6s infinite ease-in-out;
+}
+
+@keyframes pulseSun {
+  0%,100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}

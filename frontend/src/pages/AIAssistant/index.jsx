@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useSelector } from "react-redux";
+import { ReactReduxContext, useSelector } from "react-redux";
 import { askAI } from "../../services/aiService";
 
 const AIAssistant = () => {
-  const { current } = useSelector((state) => state.weather);
-  console.log(current);
+  const reduxCurrent = useSelector((state) => state.weather.current);
+  const current = reduxCurrent || JSON.parse(localStorage.getItem("weatherContext"));
   const [messages, setMessages] = useState([
     {
       role: "assistant",
@@ -33,14 +33,20 @@ const AIAssistant = () => {
     setLoading(true);
 
     try {
-      const reply = await askAI(question, {
+      const weatherContext = {
         city: current?.city,
         temperature: current?.temperature,
         humidity: current?.humidity,
         wind_speed: current?.wind_speed,
         condition: current?.condition,
-      });
+      };
+      console.log("weather context:", weatherContext);
 
+      const reply = await askAI(
+        question,
+        weatherContext
+      );
+      
       setMessages((prev) => [
         ...prev,
         {

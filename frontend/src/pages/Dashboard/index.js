@@ -50,6 +50,15 @@ useEffect(() => {
     }
   }, [location, dispatch]);
 
+  useEffect(() => {
+  if (current) {
+    localStorage.setItem(
+      "weatherContext",
+      JSON.stringify(current)
+    );
+   }
+  }, [current]);
+
   const handleCitySelect = useCallback((city) => {
     dispatch(fetchWeather(city));
     localStorage.setItem('skypulse-last-city', city);
