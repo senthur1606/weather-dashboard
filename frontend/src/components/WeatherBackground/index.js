@@ -67,14 +67,16 @@ useEffect(() => {
   }
 
   // ⛈️ Thunderstorm
-  else if (
-    condition.includes("thunder")
-  ) {
-    const flash = document.createElement("div");
+else if (
+  condition.includes("thunder") ||
+  condition.includes("storm")
+){
+const bolt = document.createElement("div");
+bolt.className = "lightning-bolt";
 
-    flash.className = "lightning-flash";
+bolt.style.left = `${20 + Math.random() * 60}%`;
 
-    container.appendChild(flash);
+container.appendChild(bolt);
 
     for (let i = 0; i < 50; i++) {
       const drop = document.createElement("div");

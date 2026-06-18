@@ -125,7 +125,7 @@ const WeatherCard = ({ data, loading }) => {
       </div>
 
       {/* Sunrise / Sunset */}
-      <div className="flex items-center gap-4 mt-4 p-4 rounded-2xl bg-white/5 border border-white/10">
+      <div className="flex flex-col sm:flex-row gap-4 mt-4 p-4 rounded-2xl bg-white/5 border border-white/10">
         <div className="flex items-center gap-2 flex-1">
           <WiSunrise className="text-amber-400" size={28} />
           <div>
@@ -133,7 +133,7 @@ const WeatherCard = ({ data, loading }) => {
             <div className="text-white font-medium font-mono text-sm">{formatTime(data.sunrise)}</div>
           </div>
         </div>
-        <div className="w-px h-8 bg-white/15" />
+       <div className="hidden sm:block w-px h-8 bg-white/15" />
         <div className="flex items-center gap-2 flex-1">
           <WiSunset className="text-orange-400" size={28} />
           <div>
@@ -141,7 +141,7 @@ const WeatherCard = ({ data, loading }) => {
             <div className="text-white font-medium font-mono text-sm">{formatTime(data.sunset)}</div>
           </div>
         </div>
-        <div className="w-px h-8 bg-white/15" />
+        <div className="hidden sm:block w-px h-8 bg-white/15" />
         <div className="flex items-center gap-2 flex-1">
           <div className="w-5 h-5 rounded-full flex-shrink-0" style={{ background: uvInfo.color, boxShadow: `0 0 10px ${uvInfo.color}` }} />
           <div>

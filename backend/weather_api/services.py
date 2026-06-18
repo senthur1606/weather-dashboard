@@ -393,9 +393,12 @@ def get_aqi(city=None, lat=None, lon=None):
             "longitude": lon,
 
             "hourly": [
-                "pm10",
-                "pm2_5",
-                "uv_index"
+            "pm10",
+            "pm2_5",
+            "ozone",
+            "nitrogen_dioxide",
+            "sulphur_dioxide",
+            "carbon_monoxide"
             ],
 
             "timezone": "auto"
@@ -408,36 +411,66 @@ def get_aqi(city=None, lat=None, lon=None):
 
     return result
 
+def calculate_aqi(pm25):
+    if pm25 <= 12:
+        return round((50 / 12) * pm25), "Good"
+
+    elif pm25 <= 35.4:
+        return round(
+            ((100 - 51) / (35.4 - 12.1))
+            * (pm25 - 12.1) + 51
+        ), "Moderate"
+
+    elif pm25 <= 55.4:
+        return round(
+            ((150 - 101) / (55.4 - 35.5))
+            * (pm25 - 35.5) + 101
+        ), "Unhealthy for Sensitive Groups"
+
+    elif pm25 <= 150.4:
+        return round(
+            ((200 - 151) / (150.4 - 55.5))
+            * (pm25 - 55.5) + 151
+        ), "Unhealthy"
+
+    elif pm25 <= 250.4:
+        return round(
+            ((300 - 201) / (250.4 - 150.5))
+            * (pm25 - 150.5) + 201
+        ), "Very Unhealthy"
+
+    return round(
+        ((500 - 301) / (500.4 - 250.5))
+        * (pm25 - 250.5) + 301
+    ), "Hazardous"
+
 
 def _normalise_aqi(raw):
 
     hourly = raw.get('hourly', {})
 
-    pm25 = hourly.get('pm2_5', [0])[0]
+    pm25 = hourly.get("pm2_5", [0])[0]
+    pm10 = hourly.get("pm10", [0])[0]
 
-    pm10 = hourly.get('pm10', [0])[0]
+    o3 = hourly.get("ozone", [0])[0]
+    no2 = hourly.get("nitrogen_dioxide", [0])[0]
+    so2 = hourly.get("sulphur_dioxide", [0])[0]
+    co = hourly.get("carbon_monoxide", [0])[0]
+
+    aqi, category = calculate_aqi(pm25)
 
     return {
+    "aqi": aqi,
+    "aqi_raw": pm25,
+    "category": category,
 
-        'aqi': 50,
+    "pm2_5": pm25,
+    "pm10": pm10,
 
-        'aqi_raw': 1,
-
-        'category': 'Good',
-
-        'pm2_5': pm25,
-
-        'pm10': pm10,
-
-        'o3': 0,
-
-        'no2': 0,
-
-        'so2': 0,
-
-        'co': 0,
-
-        'nh3': 0,
+    "o3": round(o3, 2),
+    "no2": round(no2, 2),
+    "so2": round(so2, 2),
+    "co": round(co, 2),
     }
 
 
