@@ -14,8 +14,6 @@ useEffect(() => {
   const condition =
     weatherCondition?.toLowerCase() || "";
 
-  console.log("Weather:", condition);
-
   // 🌧️ Rain
   if (
     condition.includes("rain") ||
