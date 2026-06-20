@@ -27,7 +27,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
-    'drf_yasg',
+    'drf_spectacular',
     'django_filters',
     # Local
     'weather_api',
@@ -129,6 +129,7 @@ REST_FRAMEWORK = {
         'anon': '1000/day',
         'user': '5000/day',
     },
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
@@ -186,18 +187,11 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@skypulse.app')
 
 # ===== SWAGGER =====
-SWAGGER_SETTINGS = {
-    'SECURITY_DEFINITIONS': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-        }
-    },
-    'USE_SESSION_AUTH': False,
-    'JSON_EDITOR': True,
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SkyPulse Weather API',
+    'DESCRIPTION': 'SkyPulse Weather Dashboard API',
+    'VERSION': '1.0.0',
 }
-
 # ===== LOGGING =====
 LOGGING = {
     'version': 1,
