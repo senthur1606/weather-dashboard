@@ -51,7 +51,7 @@ def health_check(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verify_token(request):
-    """Lightweight endpoint to check if an access token is still valid."""
+    """Lightweight endpoint to check if an access token is still valid"""
     # If JWT authentication passed, user is set
     if request.user and request.user.is_authenticated:
         return Response({'valid': True, 'user_id': request.user.id})
