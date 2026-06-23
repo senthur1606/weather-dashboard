@@ -81,6 +81,7 @@ export default function WeatherMap() {
   }, []);
 
   // Initialize map once Leaflet is loaded
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!leafletLoaded || !mapRef.current || mapInstanceRef.current) return;
 
@@ -171,6 +172,7 @@ export default function WeatherMap() {
   }, [activeLayer, mapReady]);
 
   // Pan map when city changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
  useEffect(() => {
   if (
     !mapReady ||

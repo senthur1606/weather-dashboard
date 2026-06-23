@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ReactReduxContext, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { askAI } from "../../services/aiService";
 
 const AIAssistant = () => {
