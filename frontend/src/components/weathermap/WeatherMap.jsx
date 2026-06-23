@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 
 const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
@@ -50,10 +50,13 @@ export default function WeatherMap() {
   const { current } = useSelector((state) => state.weather);
 
   // Determine center from current weather or default to India
-  const center =
-  current?.lat && current?.lon
-    ? [current.lat, current.lon]
-    : [20.5937, 78.9629];
+const center = useMemo(
+  () =>
+    current?.lat && current?.lon
+      ? [current.lat, current.lon]
+      : [20.5937, 78.9629],
+  [current?.lat, current?.lon]
+);
 
   const cityName = current?.city || "India";
 
@@ -153,7 +156,14 @@ export default function WeatherMap() {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [leafletLoaded]);
+ }, [
+  leafletLoaded,
+  center,
+  current?.city,
+  current?.temperature,
+  current?.lat,
+  current?.lon
+]);
 
   // Switch layers when activeLayer changes
   useEffect(() => {
@@ -265,7 +275,20 @@ markerRef.current.on("mouseout", function(){
   },1000);
 });
 
-}, [current?.lat, current?.lon, mapReady]);
+}, [
+  current?.lat,
+  current?.lon,
+  mapReady,
+  current?.city,
+  current?.temperature,
+  current?.humidity,
+  current?.wind_speed,
+  current?.pressure,
+  current?.visibility,
+  current?.uv_index,
+  current?.sunrise,
+  current?.sunset
+]);
 
   const activeLayerInfo = MAP_LAYERS.find((l) => l.id === activeLayer);
 
