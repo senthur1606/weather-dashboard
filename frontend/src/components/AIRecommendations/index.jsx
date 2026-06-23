@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
 import weatherApi from '../../services/weatherApi';
@@ -8,21 +8,22 @@ const AIRecommendations = ({ weatherData }) => {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const fetchRecs = async () => {
-    if (!weatherData) return;
-    setLoading(true);
-    try {
-      const res = await weatherApi.getRecommendations(weatherData);
-      setRecommendations(res.data.recommendations || []);
-    } catch {
-      setRecommendations(['✨ Great weather for outdoor activities!']);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchRecs = useCallback(async () => {
+  if (!weatherData) return;
 
-  useEffect(() => { fetchRecs(); }, [weatherData?.city]);
+  setLoading(true);
 
+  try {
+    const res = await weatherApi.getRecommendations(weatherData);
+    setRecommendations(res.data.recommendations || []);
+  } catch {
+    setRecommendations(['✨ Great weather for outdoor activities!']);
+  } finally {
+    setLoading(false);
+  }
+}, [weatherData]);
+
+  useEffect(() => {fetchRecs();}, [fetchRecs]);
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
