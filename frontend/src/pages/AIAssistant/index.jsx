@@ -40,7 +40,6 @@ const AIAssistant = () => {
         wind_speed: current?.wind_speed,
         condition: current?.condition,
       };
-      console.log("weather context:", weatherContext);
 
       const reply = await askAI(
         question,
