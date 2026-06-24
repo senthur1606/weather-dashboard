@@ -23,7 +23,12 @@ CACHE_TTL = settings.WEATHER_CACHE_TTL
 def _get(url: str, params: dict) -> dict:
     try:
         resp = requests.get(url, params=params, timeout=10)
+
+        print("STATUS:", resp.status_code)
+        print("BODY:", resp.text[:500])
+
         resp.raise_for_status()
+
         return resp.json()
 
     except requests.Timeout:
@@ -32,11 +37,17 @@ def _get(url: str, params: dict) -> dict:
 
     except requests.RequestException as e:
         logger.error(f"Request error: {e}")
-        raise ValueError("Failed to connect to weather service.")
 
+        if e.response is not None:
+            logger.error(f"Response Body: {e.response.text}")
 
+        raise ValueError(str(e))
+    
 def _cache_key(prefix: str, *args) -> str:
-    parts = '_'.join(str(a).lower().replace(' ', '_') for a in args)
+    parts = "_".join(
+        str(a).lower().replace(" ", "_")
+        for a in args
+    )
     return f"skypulse_{prefix}_{parts}"
 
 
