@@ -30,12 +30,6 @@ useEffect(() => {
   if (loadedRef.current) return;
 
   loadedRef.current = true;
-
-  const lastCity =
-    localStorage.getItem('skypulse-last-city') ||
-    'New York';
-
-  dispatch(fetchWeather(lastCity));
 }, [dispatch]);
 
   // Auto-refresh every 10 minutes
