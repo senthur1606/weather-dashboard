@@ -287,9 +287,9 @@ class HistoricalView(APIView):
 # ─── Export PDF ───────────────────────────────────────────────────────────────
 
 class ExportReportView(APIView):
-    permission_classes = [AllowAny]
-
-    def get(self, request):
+   logger = logging.getLogger(__name__)
+   permission_classes = [AllowAny]
+   def get(self, request):
         city = request.query_params.get('city', 'Unknown')
         try:
             current = services.get_current_weather(city=city)
@@ -298,5 +298,6 @@ class ExportReportView(APIView):
             response = HttpResponse(pdf_bytes, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="weather_{city.lower()}.pdf"'
             return response
-        except Exception as e:
-            return error_response(str(e), 500)
+        except Exception:
+         logger.exception("Export PDF failed")
+         raise
