@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState} from "react";
 import { useSelector } from "react-redux";
 
 const OPENWEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
@@ -50,14 +50,6 @@ export default function WeatherMap() {
   const { current } = useSelector((state) => state.weather);
 
   // Determine center from current weather or default to India
-const center = useMemo(
-  () =>
-    current?.lat && current?.lon
-      ? [current.lat, current.lon]
-      : [20.5937, 78.9629],
-  [current?.lat, current?.lon]
-);
-
   const cityName = current?.city || "India";
 
   // Load Leaflet CSS + JS dynamically
@@ -91,7 +83,7 @@ const center = useMemo(
     const L = window.L;
 
     const map = L.map(mapRef.current, {
-      center,
+      center: [20.5937, 78.9629],
       zoom: 6,
       zoomControl: true,
       attributionControl: true,
@@ -119,31 +111,6 @@ const center = useMemo(
 
     // Show default layer
     layerRefs.current["temp"].addTo(map);
-
-    // City marker
-    if (current?.lat && current?.lon) {
-      const customIcon = L.divIcon({
-        className: "",
-        html: `<div style="
-               background:#0ea5e9;
-               color:white;
-               padding:6px 12px;
-               border-radius:25px;
-               font-size:13px;
-               font-weight:700;
-               border:2px solid white;
-               box-shadow:0 4px 12px rgba(0,0,0,.3);">
-📍 ${current.city}
-<br/>
-🌡️ ${Math.round(current.temperature)}°C
-</div>
-`,
-        iconAnchor: [40, 10],
-      });
-      markerRef.current = L.marker(center,
-  { icon: customIcon }
-).addTo(map);
-    }
 
     mapInstanceRef.current = map;
     setTimeout(()=>{
