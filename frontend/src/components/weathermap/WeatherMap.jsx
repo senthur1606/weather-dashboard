@@ -151,19 +151,14 @@ const center = useMemo(
     },200);
 
     setMapReady(true);
+    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => map.invalidateSize(), 1000);
 
     return () => {
       map.remove();
       mapInstanceRef.current = null;
     };
- }, [
-  leafletLoaded,
-  center,
-  current?.city,
-  current?.temperature,
-  current?.lat,
-  current?.lon
-]);
+ }, [leafletLoaded]);
 
   // Switch layers when activeLayer changes
   useEffect(() => {
@@ -202,6 +197,10 @@ const center = useMemo(
   map.flyTo(newCenter, 10, {
     duration: 1.5
   });
+
+  setTimeout(() => {
+  map.invalidateSize();
+}, 500);
 
   if (markerRef.current) {
     map.removeLayer(markerRef.current);
@@ -289,6 +288,7 @@ markerRef.current.on("mouseout", function(){
   current?.sunrise,
   current?.sunset
 ]);
+
 
   const activeLayerInfo = MAP_LAYERS.find((l) => l.id === activeLayer);
 

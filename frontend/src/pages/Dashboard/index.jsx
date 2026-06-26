@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback,useRef } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchWeather, fetchWeatherByCoords } from '../../store/slices/weatherSlice';
@@ -23,14 +23,7 @@ const Dashboard = () => {
   const { items: favorites } = useSelector(s => s.favorites);
   const { location, loading: geoLoading, getLocation } = useGeolocation();
 
-  // Auto-load default city on mount
-const loadedRef = useRef(false);
-
-useEffect(() => {
-  if (loadedRef.current) return;
-
-  loadedRef.current = true;
-}, [dispatch]);
+  useEffect(() => {getLocation();}, [getLocation]);
 
   // Auto-refresh every 10 minutes
   useInterval(() => {
@@ -38,11 +31,11 @@ useEffect(() => {
   }, 600000);
 
   // Load by geolocation when available
-  useEffect(() => {
-    if (location) {
-      dispatch(fetchWeatherByCoords(location));
-    }
-  }, [location, dispatch]);
+useEffect(() => {
+  if (location) {
+    dispatch(fetchWeatherByCoords(location));
+  }
+}, [location, dispatch]);
 
   useEffect(() => {
   if (current) {
@@ -122,6 +115,14 @@ const handleExport = async () => {
 };
 
 const isFavorite = favorites.includes(current?.city);
+if (geoLoading && !current) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-white">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+      <p>Getting your location...</p>
+    </div>
+  );
+}
 
   return (
     <div className="min-h-screen pt-24 pb-12 px-4 md:px-6">
@@ -210,15 +211,15 @@ const isFavorite = favorites.includes(current?.city);
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {/* Left column - main weather */}
           <div className="xl:col-span-2 space-y-4">
-            <WeatherCard data={current} loading={loading} />
+            <WeatherCard data={current} loading={loading || geoLoading } />
             <WeatherMap/>
-            <ForecastCard data={forecast} loading={loading} />
+            <ForecastCard data={forecast} loading={loading || geoLoading} />
             <Charts forecast={forecast} />
           </div>
 
           {/* Right column - widgets */}
           <div className="space-y-4">
-            <AQIWidget data={aqi} loading={loading} />
+            <AQIWidget data={aqi} loading={loading || geoLoading} />
             <AIRecommendations weatherData={current} />
             <FavoritesCityList onSelect={handleCitySelect} />
           </div>
