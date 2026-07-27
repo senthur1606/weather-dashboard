@@ -12,7 +12,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ===== SECURITY =====
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-skypulse-dev-key-change-in-production-abc123xyz')
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,0.0.0.0,weather-dashboard-dywt.vercel.app/').split(',')
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "0.0.0.0",
+    "weather-dashboard-36yg.onrender.com",
+]
 GEMINI_API_KEY=  config("GEMINI_API_KEY", default="")
 # ===== APPS =====
 INSTALLED_APPS = [
@@ -150,10 +155,18 @@ SIMPLE_JWT = {
 }
 
 # ===== CORS =====
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='https://weather-dashboard-dywt.vercel.app,'
-).split(',')
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://weather-dashboard-dywt.vercel.app",
+    "https://weather-dashboard-dywt-git-main-senthur1606s-projects.vercel.app",
+    "https://weather-dashboard-dywt-4ygfpbkz2-senthur1606s-projects.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://weather-dashboard-dywt.vercel.app",
+    "https://weather-dashboard-dywt-git-main-senthur1606s-projects.vercel.app",
+    "https://weather-dashboard-dywt-4ygfpbkz2-senthur1606s-projects.vercel.app",
+]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = ['*']
 
