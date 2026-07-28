@@ -108,6 +108,10 @@ class CitySearchSerializer(serializers.Serializer):
 
 class RecommendationRequestSerializer(serializers.Serializer):
     city = serializers.CharField(required=False)
+
+    lat = serializers.FloatField(required=False, allow_null=True)
+    lon = serializers.FloatField(required=False, allow_null=True)
+
     temperature = serializers.FloatField(required=False)
     condition = serializers.CharField(required=False)
     humidity = serializers.IntegerField(required=False)

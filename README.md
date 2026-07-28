@@ -1,56 +1,87 @@
-☁️ SkyPulse Weather Dashboard
+# ☁️ SkyPulse Weather Dashboard
 
-A modern full-stack weather application built with React.js and Django REST Framework. SkyPulse provides real-time weather information, air quality monitoring, interactive maps, weather forecasts, geolocation support, city comparison, and intelligent weather insights through a responsive glassmorphism-based user interface.
+A modern, full-stack weather application built with **React.js** and **Django REST Framework**. SkyPulse provides real-time weather information, air quality monitoring, interactive maps, weather forecasts, geolocation support, AI-powered weather assistance, and city comparison through a clean glassmorphism-based user interface.
 
 ---
 
-🚀 Features
+# 🚀 Features
 
-🌦 Weather Information
+## 🌦 Weather Information
 
 - Real-time weather updates
-- 7-day weather forecast
-- Hourly weather forecast
-- Temperature, humidity, pressure, and wind details
-- Sunrise and sunset information
-- UV Index and visibility metrics
-
-📍 Location Services
-
-- Search weather by city
-- Current location weather using Geolocation API
-- Reverse geocoding support
-- Interactive weather map
-- Dynamic city markers
-
-🌫 Air Quality Monitoring
-
-- AQI tracking
-- PM2.5 and PM10 levels
-- Environmental condition monitoring
-- Color-coded AQI indicators
-
-📊 Analytics & Comparison
-
-- Weather trend visualization
-- Multi-city comparison
-- Historical weather data
-- Interactive charts and graphs
-
-🎨 User Experience
-
-- Modern glassmorphism design
-- Dark and Light themes
-- Responsive design
-- Smooth animations with Framer Motion
-- Weather-based dynamic backgrounds
-- Mobile-friendly interface
+- 7-Day weather forecast
+- 24-Hour forecast
+- Temperature & Feels Like
+- Humidity & Atmospheric Pressure
+- Wind Speed
+- UV Index
+- Visibility
+- Sunrise & Sunset
 
 ---
 
-🛠 Tech Stack
+## 📍 Location Services
 
-Frontend
+- Search weather by city
+- Current location weather
+- GPS-based weather detection
+- Reverse geocoding
+- Interactive weather map
+- Dynamic map markers
+
+---
+
+## 🌫 Air Quality Monitoring
+
+- Live AQI Monitoring
+- PM2.5
+- PM10
+- Ozone (O₃)
+- Nitrogen Dioxide (NO₂)
+- Sulphur Dioxide (SO₂)
+- Carbon Monoxide (CO)
+- AQI Category Indicators
+
+---
+
+## 🤖 AI Weather Assistant
+
+Powered by **Google Gemini AI**
+
+- Ask weather-related questions
+- Personalized weather suggestions
+- Smart clothing recommendations
+- Outdoor activity suggestions
+- Travel recommendations
+- Context-aware AI responses using live weather data
+
+---
+
+## 📊 Analytics & Comparison
+
+- Weather Trends
+- Multi-city Weather Comparison
+- Interactive Charts
+- Historical Weather Insights
+
+---
+
+## 🎨 User Experience
+
+- Glassmorphism UI
+- Dark / Light Theme
+- Responsive Design
+- Smooth Framer Motion Animations
+- Dynamic Weather Backgrounds
+- Voice Search Support
+- Recent Search History
+- Mobile Friendly
+
+---
+
+# 🛠 Tech Stack
+
+## Frontend
 
 - React.js
 - Redux Toolkit
@@ -59,68 +90,245 @@ Frontend
 - Framer Motion
 - Recharts
 - Axios
-- Leaflet Maps
+- React Leaflet
+- React Icons
 
-Backend
+---
+
+## Backend
 
 - Python
 - Django
 - Django REST Framework
 - SQLite
-- Redis (Caching)
+- Redis Cache
 
-APIs
+---
+
+## APIs
 
 - Open-Meteo Weather API
 - Open-Meteo Geocoding API
 - Open-Meteo Air Quality API
+- OpenStreetMap Nominatim
+- Google Gemini AI
 
 ---
 
-⚡ Key Highlights
+# ⚡ Performance Optimizations
 
-- Full-stack React + Django application
-- Real-time weather data integration
-- Geolocation-based weather detection
-- Air Quality Index monitoring
-- Interactive weather maps
-- State management using Redux Toolkit
-- RESTful API architecture
-- Responsive UI design
-- Weather analytics and comparison tools
-
----
-
-📈 Performance Optimizations
-
-- API response caching
-- Debounced city search
-- Optimized Redux state management
-- Lazy loading components
-- Error handling and fallback states
-- Reduced API requests using caching mechanisms
+- Redis Caching
+- Weather Response Caching
+- Geocoding Cache
+- AQI Cache
+- Forecast Cache
+- Debounced Search
+- Optimized Redux State Management
+- Lazy Loading Components
+- API Error Handling
+- Reduced Network Requests
+- Faster AI Recommendations
+- Optimized API Response Times
 
 ---
 
-🎯 Learning Outcomes
+# 🏗 Architecture
 
-This project demonstrates proficiency in:
+```
+React Frontend
+       │
+       ▼
+Redux Toolkit
+       │
+       ▼
+Django REST API
+       │
+       ├── Open-Meteo Weather API
+       ├── Air Quality API
+       ├── Geocoding API
+       ├── OpenStreetMap
+       └── Google Gemini AI
+```
 
-- Frontend Development with React.js
-- Backend API Development with Django REST Framework
-- State Management using Redux Toolkit
+---
+
+# 📂 Project Structure
+
+```
+SkyPulse/
+│
+├── frontend/
+│   ├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── services/
+│   └── store/
+│
+├── backend/
+│   ├── weather/
+│   ├── ai/
+│   ├── users/
+│   ├── services/
+│   └── settings.py
+│
+└── README.md
+```
+
+---
+
+# 🔧 Installation
+
+## Clone Repository
+
+```bash
+git clone https://github.com/senthur1606/SkyPulse.git
+```
+
+```bash
+cd SkyPulse
+```
+
+---
+
+## Backend
+
+```bash
+cd backend
+```
+
+```bash
+python -m venv venv
+```
+
+### Windows
+
+```bash
+venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Run server
+
+```bash
+python manage.py migrate
+python manage.py runserver
+```
+
+---
+
+## Frontend
+
+```bash
+cd frontend
+```
+
+Install packages
+
+```bash
+npm install
+```
+
+Start development server
+
+```bash
+npm run dev
+```
+
+---
+
+# 🌐 Environment Variables
+
+Create a `.env` file inside the backend project.
+
+```env
+GEMINI_API_KEY=YOUR_API_KEY
+
+WEATHER_API_BASE=https://api.open-meteo.com/v1
+GEOCODING_API_BASE=https://geocoding-api.open-meteo.com/v1
+AIR_QUALITY_API_BASE=https://air-quality-api.open-meteo.com/v1
+```
+
+---
+
+# 📌 API Endpoints
+
+## Weather
+
+```
+GET /api/weather/current/
+GET /api/weather/forecast/
+GET /api/weather/aqi/
+GET /api/weather/search/
+POST /api/weather/recommendations/
+```
+
+## AI
+
+```
+POST /api/ai/chat/
+```
+
+---
+
+# 🎯 Learning Outcomes
+
+This project demonstrates skills in:
+
+- Full-Stack Web Development
+- React.js
+- Django REST Framework
+- REST API Design
+- Redux Toolkit
+- State Management
 - API Integration
+- AI Integration
+- Redis Caching
 - Geolocation Services
+- Interactive Maps
 - Data Visualization
 - Responsive UI Design
-- Full-Stack Application Architecture
+- Performance Optimization
 
 ---
 
-👨‍💻 Author
+# 🚀 Future Improvements
 
-Senthur Pandian
+- User Authentication
+- Weather Alerts
+- Favorite Cities
+- Weather Notifications
+- PWA Support
+- Docker Deployment
+- PostgreSQL Support
+- CI/CD Pipeline
+- Unit & Integration Testing
 
-Aspiring Python Developer | Full-Stack Developer 
+---
 
-GitHub: https://github.com/senthur1606
+# 👨‍💻 Author
+
+**Senthur Pandian**
+
+Aspiring Python Full-Stack Developer
+
+📧 Email: sendhuponian1510@gmail.com
+
+💼 GitHub: https://github.com/senthur1606
+
+---
+
+# ⭐ Support
+
+If you found this project useful, consider giving it a ⭐ on GitHub.

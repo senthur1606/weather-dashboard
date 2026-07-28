@@ -1,18 +1,18 @@
 import React, { useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchWeather, fetchWeatherByCoords } from '../../store/slices/weatherSlice';
-import { toggleFavorite } from '../../store/slices/favoritesSlice';
-import SearchBar from '../../components/SearchBar';
-import WeatherCard from '../../components/WeatherCard';
-import ForecastCard from '../../components/ForecastCard';
-import weatherApi from '../../services/weatherApi';
-import AQIWidget from '../../components/AQIWidget';
-import Charts from '../../components/Charts';
-import AIRecommendations from '../../components/AIRecommendations';
-import WeatherMap from '../../components/weathermap/WeatherMap';
-import { useGeolocation, useInterval } from '../../hooks';
-import { formatLastUpdated } from '../../utils/weatherUtils';
+import { fetchWeather, fetchWeatherByCoords } from '../store/slices/weatherSlice';
+import { toggleFavorite } from '../store/slices/favoritesSlice';
+import SearchBar from '../components/SearchBar';
+import WeatherCard from '../components/WeatherCard';
+import ForecastCard from '../components/ForecastCard';
+import weatherApi from '../services/weatherApi';
+import AQIWidget from '../components/AQIWidget';
+import Charts from '../components/Charts';
+import AIRecommendations from '../components/AIRecommendations';
+import WeatherMap from '../components/WeatherMap';
+import { useGeolocation, useInterval } from '../hooks';
+import { formatLastUpdated } from '../utils/weatherUtils';
 import { FiHeart, FiRefreshCw, FiNavigation, FiAlertTriangle, FiDownload } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -24,6 +24,11 @@ const Dashboard = () => {
   const { location, loading: geoLoading, getLocation } = useGeolocation();
 
   useEffect(() => {getLocation();}, [getLocation]);
+
+  const handleMapClick = (lat, lon) => {
+    console.log(`Map clicked at: ${lat}, ${lon}`);
+  dispatch(fetchWeatherByCoords({lat, lon}));
+};
 
   // Auto-refresh every 10 minutes
   useInterval(() => {
@@ -45,6 +50,13 @@ useEffect(() => {
     );
    }
   }, [current]);
+
+  const handleRefresh = () => {
+  if (current?.city && !loading) {
+    dispatch(fetchWeather(current.city));
+    toast.success("Weather updated");
+  }
+};
 
   const handleCitySelect = useCallback((city) => {
     dispatch(fetchWeather(city));
@@ -145,9 +157,11 @@ if (geoLoading && !current) {
               onClick={getLocation}
               disabled={geoLoading}
               title="Use my location"
-              className=" w-12 h-12 rounded-2x1 glass-card flex items-center justify-center text-sky-400 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] transition-all disabled:opacity-50"
+              className=" w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 hover:text-sky-300 hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] transition-all disabled:opacity-50"
             >
-              <FiNavigation />
+              <FiNavigation
+  className={geoLoading ? "animate-spin" : ""}
+/>
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -161,16 +175,19 @@ if (geoLoading && !current) {
             >
               <FiHeart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
             </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => current?.city && dispatch(fetchWeather(current.city))}
-              disabled={loading}
-              title="Refresh"
-              className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 transition-all hover:shadow-[0_0_20px_rgba(239,68,68,0.35)]"
-            >
-              <FiRefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-            </motion.button>
+<motion.button
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+  onClick={handleRefresh}
+  disabled={loading || !current}
+  title="Refresh"
+  className="w-12 h-12 rounded-2xl glass-card flex items-center justify-center text-sky-400 transition-all hover:shadow-[0_0_20px_rgba(56,189,248,0.35)] disabled:opacity-50 disabled:cursor-not-allowed"
+>
+  <FiRefreshCw
+    size={15}
+    className={loading ? "animate-spin" : ""}
+  />
+</motion.button>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -212,7 +229,12 @@ if (geoLoading && !current) {
           {/* Left column - main weather */}
           <div className="xl:col-span-2 space-y-4">
             <WeatherCard data={current} loading={loading || geoLoading } />
-            <WeatherMap/>
+            <WeatherMap
+              lat={current?.lat}
+              lon={current?.lon}
+              city={current?.city}
+              onMapClick={handleMapClick}
+             />
             <ForecastCard data={forecast} loading={loading || geoLoading} />
             <Charts forecast={forecast} />
           </div>

@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { toggleFavorite } from '../../store/slices/favoritesSlice';
-import { fetchWeather } from '../../store/slices/weatherSlice';
-import { getWeatherIcon, getTempColor } from '../../utils/weatherUtils';
-import weatherApi from '../../services/weatherApi';
-import SearchBar from '../../components/SearchBar';
+import { toggleFavorite } from '../store/slices/favoritesSlice';
+import { fetchWeather } from '../store/slices/weatherSlice';
+import { getWeatherIcon, getTempColor } from '../utils/weatherUtils';
+import weatherApi from '../services/weatherApi';
+import SearchBar from '../components/SearchBar';
 import {FiTrash2, FiArrowRight, FiMapPin } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 

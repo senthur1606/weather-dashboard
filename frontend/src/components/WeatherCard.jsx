@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme } from '../context/ThemeContext';
 import {
   degToCompass, getWeatherIcon, getUVCategory,
   getTempColor, formatTime
-} from '../../utils/weatherUtils';
+} from '../utils/weatherUtils';
 import {
   WiHumidity, WiStrongWind, WiBarometer, WiSunrise,
   WiSunset

@@ -5,8 +5,8 @@ import { Toaster } from 'react-hot-toast';
 import { store } from './store';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Navbar from './components/Navbar';
-import WeatherBackground from './components/WeatherBackground';
-import AIAssistant from './pages/AIAssistant';
+// import WeatherBackground from './components/WeatherBackground';
+import AIAssistant from './pages/AIAssitant';
 import Dashboard from './pages/Dashboard';
 import Favorites from './pages/Favorites';
 import Compare from './pages/Compare';
@@ -17,7 +17,7 @@ const AppContent = () => {
 
   return (
     <div className={`min-h-screen relative transition-all duration-1000 ${getWeatherBgClass()}`}>
-      <WeatherBackground />
+      {/* <WeatherBackground /> */}
       {/* Gradient overlay for depth */}
       <div className="fixed inset-0 pointer-events-none z-0"
         style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.2) 100%)' }}
@@ -31,7 +31,7 @@ const AppContent = () => {
           <Route path="/ai-assistant" element={<AIAssistant/>}/>
         </Routes>
       </div>
-      <Toaster
+      {/* <Toaster
         position="bottom-right"
         toastOptions={{
           style: {
@@ -44,7 +44,7 @@ const AppContent = () => {
             fontSize: '14px',
           },
         }}
-      />
+      /> */}
     </div>
   );
 };

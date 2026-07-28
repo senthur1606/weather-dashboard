@@ -4,6 +4,7 @@ Weather service layer using Open-Meteo APIs
 
 import requests
 import logging
+import time
 from datetime import datetime
 from django.conf import settings
 from django.core.cache import cache
@@ -22,10 +23,11 @@ CACHE_TTL = settings.WEATHER_CACHE_TTL
 
 def _get(url: str, params: dict) -> dict:
     try:
-        resp = requests.get(url, params=params, timeout=10)
+        start = time.time()
+        resp = requests.get(url, params=params, timeout=3)
 
-        print("STATUS:", resp.status_code)
-        print("BODY:", resp.text[:500])
+        elapsed = time.time() - start
+        print(f"Request to {url} took {elapsed:.2f} seconds")
 
         resp.raise_for_status()
 
@@ -94,43 +96,34 @@ def geocode_city(city: str) -> dict:
 
 def get_current_weather(city=None, lat=None, lon=None):
 
-    city_name = ''
-    country = ''
-
-    # Search by city name
     if city and not (lat and lon):
-
         coords = geocode_city(city)
+        lat = coords["lat"]
+        lon = coords["lon"]
 
-        lat = coords['lat']
-        lon = coords['lon']
-
-        city_name = coords['name']
-        country = coords['country']
-
-    # Search by GPS coordinates
-    elif lat and lon:
-
-        location = reverse_geocode(lat, lon)
-
-        city_name = location['name']
-        country = location['country']
-
-    else:
+    elif not (lat and lon):
         raise ValueError("City or coordinates required.")
 
-    key = _cache_key('current', lat, lon)
+    key = _cache_key("current", lat, lon)
 
     cached = cache.get(key)
     if cached:
         return cached
+
+    # Only fetch location name on a cache miss
+    if city:
+        city_name = coords["name"]
+        country = coords["country"]
+    else:
+        location = reverse_geocode(lat, lon)
+        city_name = location["name"]
+        country = location["country"]
 
     raw = _get(
         f"{BASE_URL}/forecast",
         {
             "latitude": lat,
             "longitude": lon,
-
             "current": [
                 "temperature_2m",
                 "relative_humidity_2m",
@@ -138,21 +131,19 @@ def get_current_weather(city=None, lat=None, lon=None):
                 "pressure_msl",
                 "wind_speed_10m",
                 "weather_code",
-                "visibility"
+                "visibility",
             ],
-
             "daily": [
                 "sunrise",
                 "sunset",
-                "uv_index_max"
+                "uv_index_max",
             ],
-
-            "timezone": "auto"
-        }
+            "timezone": "auto",
+        },
     )
 
-    raw['city_name'] = city_name
-    raw['country'] = country
+    raw["city_name"] = city_name
+    raw["country"] = country
 
     result = _normalise_current(raw)
 
@@ -490,6 +481,11 @@ def _normalise_aqi(raw):
 # ─────────────────────────────────────────────────────────────
 
 def search_cities(query: str):
+    key = _cache_key("search", query)
+
+    cached = cache.get(key)
+    if cached:
+        return cached
 
     raw = _get(
         f"{GEO_URL}/search",
@@ -501,51 +497,57 @@ def search_cities(query: str):
 
     results = []
 
-    for item in raw.get('results', []):
-
+    for item in raw.get("results", []):
         results.append({
-            'name': item.get('name', ''),
-            'country': item.get('country', ''),
-            'state': item.get('admin1', ''),
-            'lat': item.get('latitude'),
-            'lon': item.get('longitude'),
+            "name": item.get("name", ""),
+            "country": item.get("country", ""),
+            "state": item.get("admin1", ""),
+            "lat": item.get("latitude"),
+            "lon": item.get("longitude"),
         })
+
+    cache.set(key, results, 3600)
 
     return results
 
 def reverse_geocode(lat, lon):
+    key = _cache_key("reverse", round(lat, 4), round(lon, 4))
+
+    cached = cache.get(key)
+    if cached:
+        return cached
+
     try:
         response = requests.get(
             "https://nominatim.openstreetmap.org/reverse",
             params={
                 "lat": lat,
                 "lon": lon,
-                "format": "jsonv2"
+                "format": "jsonv2",
             },
-            headers={
-                "User-Agent": "SkyPulse"
-            },
-            timeout=10
+            headers={"User-Agent": "SkyPulse"},
+            timeout=10,
         )
 
         response.raise_for_status()
 
         data = response.json()
-
         address = data.get("address", {})
 
-        city = (
-            address.get("city")
-            or address.get("town")
-            or address.get("village")
-            or address.get("county")
-            or "Current Location"
-        )
-
-        return {
-            "name": city,
+        result = {
+            "name": (
+                address.get("city")
+                or address.get("town")
+                or address.get("village")
+                or address.get("county")
+                or "Current Location"
+            ),
             "country": address.get("country", "")
         }
+
+        cache.set(key, result, 86400)
+
+        return result
 
     except Exception as e:
         logger.error(f"Reverse geocode error: {e}")
@@ -554,22 +556,36 @@ def reverse_geocode(lat, lon):
             "name": "Current Location",
             "country": ""
         }
-
 def get_ai_recommendations(data):
+    print("=" * 60)
+    print("AI Recommendation Input")
+    print(data)
+    print("=" * 60)
 
-    city = data.get('city')
-    lat = data.get('lat')
-    lon = data.get('lon')
+    city = data.get("city")
+    lat = data.get("lat")
+    lon = data.get("lon")
 
-    weather = get_current_weather(
-        city=city,
-        lat=lat,
-        lon=lon
-    )
+    print(f"City : {city}")
+    print(f"Lat  : {lat}")
+    print(f"Lon  : {lon}")
 
-    temp = weather.get('temperature', 0)
-    humidity = weather.get('humidity', 0)
-    wind_speed = weather.get('wind_speed', 0)
+    # Use values sent from frontend
+    temp = data.get("temperature")
+    humidity = data.get("humidity")
+    wind_speed = data.get("wind_speed")
+
+    # Only fetch weather if something important is missing
+    if temp is None or humidity is None or wind_speed is None:
+        weather = get_current_weather(
+            city=city,
+            lat=lat,
+            lon=lon
+        )
+
+        temp = weather.get("temperature", 0)
+        humidity = weather.get("humidity", 0)
+        wind_speed = weather.get("wind_speed", 0)
 
     recommendations = []
 

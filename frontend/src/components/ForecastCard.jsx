@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getWeatherIcon, getRelativeDay, getTempColor} from '../../utils/weatherUtils';
+import { getWeatherIcon, getRelativeDay, getTempColor} from '../utils/weatherUtils';
 import { FiDroplet} from 'react-icons/fi';
 
 const ForecastCard = ({ data, loading }) => {

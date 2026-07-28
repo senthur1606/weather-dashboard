@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
-import { askAI } from "../../services/aiService";
+import { askAI } from "../services/aiService";
 
 const AIAssistant = () => {
   const reduxCurrent = useSelector((state) => state.weather.current);

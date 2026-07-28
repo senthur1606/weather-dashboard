@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
-import { searchCities, clearSearch } from '../../store/slices/weatherSlice';
-import { useDebounce, useVoiceSearch } from '../../hooks';
+import { searchCities, clearSearch } from '../store/slices/weatherSlice';
+import { useDebounce, useVoiceSearch } from '../hooks';
 import { FiSearch, FiX, FiMapPin, FiMic } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
@@ -100,6 +100,7 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
 
         <input
           ref={inputRef}
+          autoComplete="off"
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -161,7 +162,7 @@ const SearchBar = ({ onSelect, placeholder = 'Search for a city...', className =
             ) : (
               searchResults.map((city, idx) => (
                 <motion.button
-                  key={idx}
+                  key={`${city.name}-${city.country}`}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.04 }}

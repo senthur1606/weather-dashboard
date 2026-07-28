@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from 'framer-motion';
-import weatherApi from '../../services/weatherApi';
+import weatherApi from '../services/weatherApi';
 import { FiCpu, FiRefreshCw } from 'react-icons/fi';
 
 const AIRecommendations = ({ weatherData }) => {
@@ -14,6 +14,7 @@ const AIRecommendations = ({ weatherData }) => {
   setLoading(true);
 
   try {
+    console.log("Fetching AI recommendations for weather data:", weatherData);
     const res = await weatherApi.getRecommendations(weatherData);
     setRecommendations(res.data.recommendations || []);
   } catch {

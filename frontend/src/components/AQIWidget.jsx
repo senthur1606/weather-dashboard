@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { getAQICategory } from '../../utils/weatherUtils';
+import { getAQICategory } from '../utils/weatherUtils';
 
 const AQIPollutant = ({ label, value, unit }) => (
   <div className="flex flex-col gap-1">

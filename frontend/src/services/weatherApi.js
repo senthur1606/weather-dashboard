@@ -5,7 +5,7 @@ console.log("BASE_URL =", BASE_URL);
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 15000,
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -137,11 +137,14 @@ const weatherApi = {
   // AI Recommendations
   getRecommendations: async (weatherData) => {
     try {
-      return await api.post('/weather/recommendations/', {
-       city: weatherData?.city,
-       lat: weatherData?.lat,
-       lon: weatherData?.lon,
-     });
+      console.log("WeatherData:", weatherData);
+
+console.log({
+    city: weatherData?.city,
+    lat: weatherData?.lat,
+    lon: weatherData?.lon,
+});
+      return await api.post('/weather/recommendations/', weatherData);
     } catch {
       const temp = weatherData?.temperature || 20;
       const condition = weatherData?.condition?.toLowerCase() || 'clear';
