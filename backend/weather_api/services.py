@@ -27,7 +27,6 @@ def _get(url: str, params: dict) -> dict:
         resp = requests.get(url, params=params, timeout=3)
 
         elapsed = time.time() - start
-        print(f"Request to {url} took {elapsed:.2f} seconds")
 
         resp.raise_for_status()
 
@@ -557,18 +556,10 @@ def reverse_geocode(lat, lon):
             "country": ""
         }
 def get_ai_recommendations(data):
-    print("=" * 60)
-    print("AI Recommendation Input")
-    print(data)
-    print("=" * 60)
 
     city = data.get("city")
     lat = data.get("lat")
     lon = data.get("lon")
-
-    print(f"City : {city}")
-    print(f"Lat  : {lat}")
-    print(f"Lon  : {lon}")
 
     # Use values sent from frontend
     temp = data.get("temperature")

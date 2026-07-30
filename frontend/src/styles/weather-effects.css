@@ -1,0 +1,225 @@
+.weather-effects {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ================= SUN ================= */
+
+.sun-glow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  top: 60px;
+  right: 80px;
+  background: radial-gradient(circle,#ffe66d 0%,#ffd43b 45%,transparent 75%);
+  animation: pulseSun 4s ease-in-out infinite;
+  filter: blur(8px);
+}
+
+@keyframes pulseSun{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.12);}
+}
+
+/* ================= CLOUDS ================= */
+
+.cloud{
+  position:absolute;
+  background:rgba(255,255,255,.65);
+  border-radius:100px;
+  filter:blur(2px);
+}
+
+.cloud::before,
+.cloud::after{
+  content:"";
+  position:absolute;
+  background:inherit;
+  border-radius:50%;
+}
+
+.cloud1{
+  width:220px;
+  height:70px;
+  top:80px;
+  left:-250px;
+  animation:cloudMove 45s linear infinite;
+}
+
+.cloud1::before{
+  width:90px;
+  height:90px;
+  top:-40px;
+  left:30px;
+}
+
+.cloud1::after{
+  width:110px;
+  height:110px;
+  top:-55px;
+  right:30px;
+}
+
+.cloud2{
+  width:170px;
+  height:60px;
+  top:170px;
+  left:-180px;
+  animation:cloudMove 60s linear infinite;
+  animation-delay:-20s;
+}
+
+.cloud2::before{
+  width:70px;
+  height:70px;
+  top:-25px;
+  left:25px;
+}
+
+.cloud2::after{
+  width:90px;
+  height:90px;
+  top:-40px;
+  right:20px;
+}
+
+.cloud3{
+  width:260px;
+  height:80px;
+  top:260px;
+  left:-280px;
+  animation:cloudMove 80s linear infinite;
+  animation-delay:-35s;
+}
+
+.cloud3::before{
+  width:110px;
+  height:110px;
+  top:-45px;
+  left:40px;
+}
+
+.cloud3::after{
+  width:130px;
+  height:130px;
+  top:-60px;
+  right:30px;
+}
+
+@keyframes cloudMove{
+  from{transform:translateX(0);}
+  to{transform:translateX(calc(100vw + 500px));}
+}
+
+/* ================= RAIN ================= */
+
+.rain{
+  position:absolute;
+  inset:0;
+}
+
+.drop{
+  position:absolute;
+  top:-20px;
+  width:2px;
+  height:18px;
+  background:rgba(180,220,255,.9);
+  animation:rainFall linear infinite;
+}
+
+@keyframes rainFall{
+  from{
+    transform:translateY(-20px);
+    opacity:1;
+  }
+  to{
+    transform:translateY(110vh);
+    opacity:.3;
+  }
+}
+
+/* ================= SNOW ================= */
+
+.snow{
+  position:absolute;
+  inset:0;
+}
+
+.flake{
+  position:absolute;
+  top:-20px;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:white;
+  opacity:.9;
+  animation:snowFall linear infinite;
+}
+
+@keyframes snowFall{
+  from{
+    transform:translateY(-20px) translateX(0);
+  }
+  to{
+    transform:translateY(110vh) translateX(50px);
+  }
+}
+
+/* ================= LIGHTNING ================= */
+
+.lightning{
+  position:absolute;
+  inset:0;
+  background:white;
+  opacity:0;
+  animation:flash 7s infinite;
+}
+
+@keyframes flash{
+  0%,90%,100%{
+    opacity:0;
+  }
+
+  91%{
+    opacity:.8;
+  }
+
+  92%{
+    opacity:0;
+  }
+
+  93%{
+    opacity:.55;
+  }
+
+  94%{
+    opacity:0;
+  }
+}
+
+/* ================= FOG ================= */
+
+.fog{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.15),
+      transparent
+  );
+  animation:fogMove 18s linear infinite;
+}
+
+@keyframes fogMove{
+  from{
+    transform:translateX(-100%);
+  }
+  to{
+    transform:translateX(100%);
+  }
+}

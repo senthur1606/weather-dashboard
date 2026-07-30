@@ -1,8 +1,6 @@
 import axios from 'axios';
 
 const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
-console.log("BASE_URL =", BASE_URL);
-
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
@@ -137,13 +135,6 @@ const weatherApi = {
   // AI Recommendations
   getRecommendations: async (weatherData) => {
     try {
-      console.log("WeatherData:", weatherData);
-
-console.log({
-    city: weatherData?.city,
-    lat: weatherData?.lat,
-    lon: weatherData?.lon,
-});
       return await api.post('/weather/recommendations/', weatherData);
     } catch {
       const temp = weatherData?.temperature || 20;

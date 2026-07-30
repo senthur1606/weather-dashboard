@@ -5,7 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import { store } from './store';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Navbar from './components/Navbar';
-// import WeatherBackground from './components/WeatherBackground';
+import WeatherBackground from './components/WeatherBackground';
 import AIAssistant from './pages/AIAssitant';
 import Dashboard from './pages/Dashboard';
 import Favorites from './pages/Favorites';
@@ -13,38 +13,36 @@ import Compare from './pages/Compare';
 import './styles/globals.css';
 
 const AppContent = () => {
-  const { getWeatherBgClass } = useTheme();
+  const { getWeatherBgClass, isDark } = useTheme();
 
   return (
-    <div className={`min-h-screen relative transition-all duration-1000 ${getWeatherBgClass()}`}>
-      {/* <WeatherBackground /> */}
-      {/* Gradient overlay for depth */}
-      <div className="fixed inset-0 pointer-events-none z-0"
-        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.05) 50%, rgba(0,0,0,0.2) 100%)' }}
+    <div
+      className={`min-h-screen relative transition-all duration-1000 overflow-hidden ${getWeatherBgClass()}`}
+    >
+      {/* Weather Effects */}
+      <WeatherBackground />
+
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none z-[1]"
+        style={{
+          background: isDark
+            ? "linear-gradient(180deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,.05) 50%, rgba(0,0,0,.20) 100%)"
+            : "linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 50%, rgba(255,255,255,.10) 100%)",
+        }}
       />
+
+      {/* Main Content */}
       <div className="relative z-10">
         <Navbar />
+
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/favorites" element={<Favorites />} />
           <Route path="/compare" element={<Compare />} />
-          <Route path="/ai-assistant" element={<AIAssistant/>}/>
+          <Route path="/ai-assistant" element={<AIAssistant />} />
         </Routes>
       </div>
-      {/* <Toaster
-        position="bottom-right"
-        toastOptions={{
-          style: {
-            background: 'rgba(15, 23, 42, 0.95)',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(20px)',
-            borderRadius: '12px',
-            fontFamily: 'DM Sans, sans-serif',
-            fontSize: '14px',
-          },
-        }}
-      /> */}
     </div>
   );
 };

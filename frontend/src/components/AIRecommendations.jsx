@@ -14,7 +14,6 @@ const AIRecommendations = ({ weatherData }) => {
   setLoading(true);
 
   try {
-    console.log("Fetching AI recommendations for weather data:", weatherData);
     const res = await weatherApi.getRecommendations(weatherData);
     setRecommendations(res.data.recommendations || []);
   } catch {

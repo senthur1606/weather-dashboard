@@ -26,7 +26,6 @@ const Dashboard = () => {
   useEffect(() => {getLocation();}, [getLocation]);
 
   const handleMapClick = (lat, lon) => {
-    console.log(`Map clicked at: ${lat}, ${lon}`);
   dispatch(fetchWeatherByCoords({lat, lon}));
 };
 

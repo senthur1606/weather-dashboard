@@ -1,4 +1,9 @@
+from google import genai
+from django.conf import settings
 from django.core.cache import cache
+
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
 
 def ask_gemini(message, weather_context=None):
     weather_context = weather_context or {}
@@ -30,18 +35,20 @@ Rules:
 """
 
     try:
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.4,
-                "max_output_tokens": 150,
-            }
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt,
         )
 
         answer = response.text
+
         cache.set(key, answer, 600)
 
         return answer
 
-    except Exception:
-        return "Sorry, I couldn't reach the AI service. Please try again."
+    except Exception as e:
+     import logging
+
+     logging.exception("Gemini API Error")
+
+     return "Sorry, I couldn't generate a response right now."

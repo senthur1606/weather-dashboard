@@ -32,54 +32,33 @@ export const ThemeProvider = ({ children }) => {
     setIsDark((prev) => !prev);
   };
 
-  const getWeatherBgClass = () => {
-    if (isNight) return 'bg-weather-night';
+const getWeatherBgClass = () => {
+  const prefix = isDark ? "bg-weather" : "bg-weather-light";
 
-    const condition =
-      weatherCondition?.toLowerCase() || '';
+  if (isNight) return `${prefix}-night`;
 
-    if (condition.includes('clear') || condition.includes('sunny')) {
-      return 'bg-weather-clear';
-    }
+  const condition = weatherCondition?.toLowerCase() || "";
 
-    if (
-      condition.includes('cloud') ||
-      condition.includes('overcast')
-    ) {
-      return 'bg-weather-cloudy';
-    }
+  if (condition.includes("clear") || condition.includes("sunny"))
+    return `${prefix}-clear`;
 
-    if (
-      condition.includes('rain') ||
-      condition.includes('drizzle')
-    ) {
-      return 'bg-weather-rainy';
-    }
+  if (condition.includes("cloud") || condition.includes("overcast"))
+    return `${prefix}-cloudy`;
 
-    if (
-      condition.includes('snow') ||
-      condition.includes('blizzard')
-    ) {
-      return 'bg-weather-snowy';
-    }
+  if (condition.includes("rain") || condition.includes("drizzle"))
+    return `${prefix}-rainy`;
 
-    if (
-      condition.includes('storm') ||
-      condition.includes('thunder')
-    ) {
-      return 'bg-weather-stormy';
-    }
+  if (condition.includes("snow") || condition.includes("blizzard"))
+    return `${prefix}-snowy`;
 
-    if (
-      condition.includes('fog') ||
-      condition.includes('mist') ||
-      condition.includes('haze')
-    ) {
-      return 'bg-weather-foggy';
-    }
+  if (condition.includes("storm") || condition.includes("thunder"))
+    return `${prefix}-stormy`;
 
-    return 'bg-weather-default';
-  };
+  if (condition.includes("fog") || condition.includes("mist"))
+    return `${prefix}-foggy`;
+
+  return `${prefix}-default`;
+};
 
   return (
     <ThemeContext.Provider
